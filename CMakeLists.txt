@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 
 set(CMAKE_C_COMPILER "/opt/homebrew/bin/gcc-14")
 set(CMAKE_CXX_COMPILER "/opt/homebrew/bin/g++-14")
+set(CMAKE_CXX_STANDARD 23)
 
 project(AntiVirus)
 
@@ -22,6 +23,10 @@ add_executable(AntiVirus
         DirectoryManager/source/Directory.cpp
         Scanner/include/Scanner.hpp
         Scanner/source/Scanner.cpp
+        Logger/include/Logger.hpp
+        Logger/source/Logger.cpp
+        Cleaner/include/Cleaner.hpp
+        Cleaner/source/Cleaner.cpp
 )
 
 target_link_libraries(AntiVirus PRIVATE OpenSSL::SSL OpenSSL::Crypto)
