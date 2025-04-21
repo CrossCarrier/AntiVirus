@@ -1,37 +1,45 @@
 #include "../include/HASH-SHA256.hpp"
-#include <openssl/sha.h>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <sstream>
 #include <stdexcept>
 
+#define EVP_MAX_SIZE 32
+#define READING_BUFFOR 2048
+
 namespace hash_SHA256 {
-    auto hash_file(const std::filesystem::path& file_path) -> std::string {
+    auto hash_file(const std::filesystem::path &file_path) -> std::string {
         std::ifstream file(file_path.c_str(), std::ios::binary);
         if (!file) {
-            throw std::runtime_error("Failed to open file " + file_path.string());
+            throw std::runtime_error("Failed to open file : " + file_path.string());
         }
 
-        SHA256_CTX ctx;
-        SHA256_Init(&ctx);
+        auto m_Context = EVP_MD_CTX_create();
+        auto m_HashingAlgorithm = EVP_get_digestbyname("sha256");
+        unsigned char l_HashedFile[EVP_MAX_SIZE];
 
-        // Reading 4KiB of data per read and hashing it
-        char data[4096];
-        while (file.read(data, sizeof(data))) {
-            SHA256_Update(&ctx, data, file.gcount());
-        }
-        if (file.gcount() > 0) {
-            SHA256_Update(&ctx, data, file.gcount());
+        EVP_DigestInit_ex(m_Context, m_HashingAlgorithm, NULL);
+
+        char l_Data[READING_BUFFOR];
+        while (file) {
+            file.read(l_Data, READING_BUFFOR);
+            std::streamsize l_Count = file.gcount();
+            if (l_Count > 0) {
+                EVP_DigestUpdate(m_Context, l_Data, l_Count);
+            }
         }
 
-        unsigned char hash[SHA256_DIGEST_LENGTH];
-        SHA256_Final(hash, &ctx);
+        EVP_DigestFinal_ex(m_Context, l_HashedFile, NULL);
 
         std::stringstream ss;
-        for (auto& byte : hash) {
+        for (const auto &byte: l_HashedFile) {
             ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
         }
 
+        EVP_MD_CTX_free(m_Context);
+
         return ss.str();
     }
-}
+} // namespace hash_SHA256
