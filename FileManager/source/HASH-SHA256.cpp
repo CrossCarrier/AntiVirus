@@ -25,9 +25,8 @@ namespace hash_SHA256 {
         char l_Data[READING_BUFFOR];
         while (file) {
             file.read(l_Data, READING_BUFFOR);
-            std::streamsize l_Count = file.gcount();
-            if (l_Count > 0) {
-                EVP_DigestUpdate(m_Context, l_Data, l_Count);
+            if (file.gcount() > 0) {
+                EVP_DigestUpdate(m_Context, l_Data, file.gcount());
             }
         }
 
