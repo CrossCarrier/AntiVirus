@@ -1,8 +1,6 @@
 #include "../include/HASH-SHA256.hpp"
 #include <fstream>
 #include <iomanip>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
 #include <sstream>
 #include <stdexcept>
 
@@ -10,7 +8,7 @@
 #define READING_BUFFOR 2048
 
 namespace hash_SHA256 {
-    auto hash_file(const std::filesystem::path &file_path) -> std::string {
+    auto hash_file(const boost::filesystem::path &file_path) -> std::string {
         std::ifstream file(file_path.c_str(), std::ios::binary);
         if (!file) {
             throw std::runtime_error("Failed to open file : " + file_path.string());

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <filesystem>
+#include <boost/filesystem/path.hpp>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
 
 namespace hash_SHA256 {
-    auto hash_file(const std::filesystem::path &file_path) -> std::string;
+    auto hash_file(const boost::filesystem::path &file_path) -> std::string;
 };

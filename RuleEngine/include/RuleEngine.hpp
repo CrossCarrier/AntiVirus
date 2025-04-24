@@ -1,10 +1,13 @@
 #pragma once
 
+#include <boost/filesystem/path.hpp>
 #include <filesystem>
-using RULE_CONFIG_FILE = std::filesystem::path;
+#include "../../FileManager/include/File.hpp"
+
 class RuleEngine {
 private:
-    static RULE_CONFIG_FILE m_ConfigFile;
+    static std::filesystem::path m_ConfigFile;
+
 public:
-    static auto set_RuleConfigFile(RULE_CONFIG_FILE p_ConfigFile) -> void;
+    static auto set_RuleConfigFile(const boost::filesystem::path &_ConfigFile) -> void;
 };

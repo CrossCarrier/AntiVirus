@@ -1,20 +1,21 @@
 #pragma once
 
-#include <filesystem>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 enum class ThreatLevel : uint8_t { NONE = 1, LOW = 2, MEDIUM = 3, HIGH = 4, VERY_HIGH = 5, VIRUS = 6 };
 
-using FILE_PATH = std::filesystem::path;
 class File {
 private:
-    FILE_PATH m_FilePath;
+    boost::filesystem::path m_FilePath;
     ThreatLevel m_ThreatLevel;
     std::time_t m_LastModificationData;
     std::string m_HashID;
-    uintmax_t size;
+    uintmax_t m_Size;
 
 public:
-    explicit File(const std::filesystem::path &file_path);
+    explicit File(const boost::filesystem::path &file_path);
 
-    auto update_index() -> void;
+    auto assign_threat_level(const ThreatLevel &_threat_level) -> void;
+    auto apply_rule() -> void;
 };
