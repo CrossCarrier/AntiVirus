@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# OpenSSL
+# Flagi
+add_compile_options(-Wall -Werror -Wpedantic)
+
+# OpenSSL       
 set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
 set(OPENSSL_INCLUDE_DIR "/opt/homebrew/opt/openssl@3/include")
 find_package(OpenSSL REQUIRED)
