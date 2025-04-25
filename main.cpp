@@ -1,13 +1,25 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <iostream>
+#include "RuleEngine/include/RuleEngine.hpp"
+
+ScanResults g_Results;
 
 int main() {
-    boost::filesystem::path Virus1("../virus1.txt");
+    boost::filesystem::path malware("/home/tralaleilotralala/code/antivirus/rules-master/malware/MALW_Miscelanea_Linux.yar");
+    boost::filesystem::path file("/home/tralaleilotralala/code/antivirus/virus.txt");
 
-    std::time_t modification_time = last_write_time(Virus1);
-    std::cout << modification_time << std::endl;
+    boost::filesystem::path file1(absolute(file));
+
+    RuleEngine::runYaraScan(file1, malware, &g_Results);
+
+    if (g_Results.empty()) {
+        std::cout << "Rule no matched" << std::endl;
+    } else {
+        for (const auto &result: g_Results) {
+            std::cout << "Matched rule : " << result.rule_name << std::endl;
+        }
+    }
 
     return 0;
 }
-

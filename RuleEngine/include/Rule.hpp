@@ -6,7 +6,7 @@
 #include <string>
 
 enum class RuleType : uint8_t { STRING_MATCH = 1, REGEX_PATTERN = 2, HASH_MATCH = 3, BEHAVIOUR_PATTERN = 4 };
-enum class RuleAction : uint8_t { REPORT = 1, QUARANTINE = 2, REMOVE = 3, BLOCK = 4 };
+enum class RuleAction : uint8_t { NONE = 0, REPORT = 1, QUARANTINE = 2, REMOVE = 3, BLOCK = 4 };
 
 class Rule {
 private:
@@ -16,11 +16,15 @@ private:
     RuleType m_RuleType;
     RuleAction m_RuleAction;
 
-    const boost::filesystem::path m_ConfigFile = boost::filesystem::path(boost::filesystem::absolute("RuleConfig.csv"));
+    const boost::filesystem::path m_ConfigFile = boost::filesystem::path(boost::filesystem::absolute("RuleConfig.json"));
 
 public:
+
+    Rule() = default;
     Rule(const std::string &p_Id, const std::string &p_Name, const std::string &p_Pattern, const RuleType &p_RuleType,
          const RuleAction &p_RuleAction);
+
+    auto get_ID() const noexcept -> std::string;
 
     auto match(const std::string &p_Content, const std::string &p_Hash) -> bool;
 };
