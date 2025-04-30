@@ -10,10 +10,10 @@ namespace {
             if (_ptr == nullptr) {
                   _ptr = struct_ptr->begin();
             }
-            if (_ptr >= struct_ptr->begin() && _ptr < struct_ptr->end()) {
+            if (_ptr >= struct_ptr->begin() && _ptr < (struct_ptr->end() - 1)) {
                   _ptr++;
             }
-            if (_ptr == struct_ptr->end()) {
+            if (_ptr == (struct_ptr->end() - 1)) {
                   throw FullContainer("Cannot add any more objects to this container!\n");
             }
             return _ptr;
@@ -68,22 +68,30 @@ auto FixedSizeContainer<T>::operator[](size_t idx) const -> T & {
 }
 
 TEMPLATE
-FixedSizeContainer<T>::itterator::itterator(POINTER _ptr) : m_Ptr{_ptr} {};
+FixedSizeContainer<T>::iterator::iterator(POINTER _ptr) : m_Ptr{_ptr} {};
 TEMPLATE
-FixedSizeContainer<T>::itterator::itterator(const itterator &other) : m_Ptr{other.m_Ptr} {}
+FixedSizeContainer<T>::iterator::iterator(const iterator &other) : m_Ptr{other.m_Ptr} {}
 TEMPLATE
-auto FixedSizeContainer<T>::itterator::operator++() noexcept -> REFERENCE {
+auto FixedSizeContainer<T>::iterator::operator++() noexcept -> iterator& {
       this->m_Ptr++;
       return this;
 }
 TEMPLATE
-auto FixedSizeContainer<T>::itterator::operator++(T) -> itterator {
-      itterator temp(m_Ptr++);
-      *this = temp;
-      return *this;
+auto FixedSizeContainer<T>::iterator::operator++(int) -> iterator {
+      iterator tmp = *this;
+      ++(*this);
+      return tmp;
+}
+TEMPLATE
+auto FixedSizeContainer<T>::iterator::operator*() const -> REFERENCE {
+      return *m_Ptr;
+}
+TEMPLATE
+auto FixedSizeContainer<T>::iterator::operator->() -> POINTER {
+      return m_Ptr;
 }
 
 TEMPLATE
-auto FixedSizeContainer<T>::begin() const -> itterator { return itterator(&(this->m_First)); }
+auto FixedSizeContainer<T>::begin() const -> iterator { return iterator(&(this->m_Container[0])); }
 TEMPLATE
-auto FixedSizeContainer<T>::end() const -> itterator { return itterator(&(this->m_Third)); }
+auto FixedSizeContainer<T>::end() const -> iterator { return iterator(&(this->m_Container[m_Size])); }

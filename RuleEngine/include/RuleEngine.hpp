@@ -20,9 +20,8 @@ enum class RULES_DIRS : uint8_t {
 };
 
 class RuleEngine {
-  private:
-      static boost::filesystem::path m_ConfigFile;
-
-  public:
+public:
       static auto scan_FILE(const boost::filesystem::path &_file_path) -> SCAN_RESULTS;
+      static auto get_RULES(const RULES_DIRS& _rule_dir_token) -> std::string;
+      static auto check_over_RULES(const boost::filesystem::path& _rules_dir_path) -> void;
 };

@@ -11,29 +11,43 @@ private:
 
 public:
       FixedSizeContainer(const size_t _size);
-      ~FixedSizeContainer();
+      FixedSizeContainer(const FixedSizeContainer<T>& _other);
+      FixedSizeContainer(FixedSizeContainer<T>&& _other) noexcept;
+      ~FixedSizeContainer() = default;
+
+      auto operator=(const FixedSizeContainer<T>& _other) -> FixedSizeContainer<T>;
+      auto operator=(FixedSizeContainer<T>&& _other) noexcept -> FixedSizeContainer<T>;
 
       // Custom itterator
-      struct itterator {
+      struct iterator {
             using DISTANCE  = std::ptrdiff_t;
             using VALUE     = T;
             using POINTER   = T *;
             using REFERENCE = T &;
-
             POINTER m_Ptr;
-            itterator(POINTER ptr);
-            itterator(const itterator &other);
+      
+            iterator(POINTER ptr);
+            iterator(const iterator &other);
 
-            auto operator++() noexcept -> REFERENCE;
-            auto operator++(T) -> itterator;
+            auto operator++() noexcept -> iterator&;
+            auto operator++(int) -> iterator;
+            auto operator*() const -> REFERENCE;
+            auto operator->() -> POINTER;
+
+            friend auto operator==(const iterator& _first, const iterator& _second) -> bool {
+                  return _first.m_Ptr == _second.m_Ptr;
+            }
+            friend auto operator!=(const iterator& _first, const iterator& _second) -> bool {
+                  return _first.m_Ptr != _second.m_Ptr;
+            }
       };
 
-      auto begin() const -> itterator;
-      auto end() const -> itterator;
+      auto begin() const -> iterator;
+      auto end() const -> iterator;
 
       auto operator[](size_t idx) const -> T &;
       auto operator==(const FixedSizeContainer &other) const noexcept -> bool;
       auto operator!=(const FixedSizeContainer &other) const noexcept -> bool;
-      auto operator<<(const T &other) -> void;
-      auto operator<<(T &&other) -> void;
+      auto operator<<(const T &_value) -> void;
+      auto operator<<(T &&_value) -> void;
 };
