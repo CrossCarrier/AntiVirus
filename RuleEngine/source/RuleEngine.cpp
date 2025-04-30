@@ -1,6 +1,4 @@
 #include "../include/RuleEngine.hpp"
-
-#include <stdexcept>
 #include <yara/arena.h>
 #include <yara/compiler.h>
 #include <yara/libyara.h>
@@ -16,50 +14,10 @@
 #include <unordered_map>
 #include <utility>
 
-template <typename T> struct Triplet {
-
-      T first;
-      T second;
-      T third;
-
-      Triplet<T>(const T &_first, const T &_second, const T &_third) {
-            this->first  = _first;
-            this->second = _second;
-            this->third  = _third;
-      }
-
-      struct TRIPLET_ITTERATOR {
-            int position;
-            /* NOT ENDED */
-            /* NEED TO BE COMPATIBLE WITH STDLIB ONES*/
-
-            inline auto begin() noexcept -> void { position = 0; }
-            inline auto next() noexcept -> void { position++; }
-      };
-
-      auto First() const noexcept -> T & { return this->first; }
-      auto Second() const noexcept -> T & { return this->second; }
-      auto Third() const noexcept -> T & { return this->third; }
-
-      auto operator[](int idx) const -> T & {
-            switch (idx) {
-            case 0:
-                  return this->first;
-                  break;
-            case 1:
-                  return this->second;
-                  break;
-            case 2:
-                  return this->third;
-                  break;
-            default:
-                  throw std::invalid_argument("Index out the range!\n");
-                  break;
-            }
-      }
-};
+#include "../../HELPERS/include/Triplet.hpp"
 
 namespace {
+
       using RULES_DIRECTORIES = std::unordered_map<RULES_DIRS, std::string>;
       /*
                   ASSIGNMENT OF RULES DIRECTORIES
