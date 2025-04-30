@@ -1,30 +1,58 @@
 #include "../include/FixedSizeContainer.hpp"
 #include "../../ERRORS_PACK/include/errors.hpp"
-#include <boost/mpl/lambda.hpp>
-#include <memory>
 
 #define TEMPLATE template <typename T>
+
+namespace {
+      TEMPLATE
+      auto categorize_shared_ptr(std::shared_ptr<T> _ptr, FixedSizeContainer<T> *struct_ptr,
+                                 char flag) -> std::shared_ptr<T> {
+            if (_ptr == nullptr) {
+                  _ptr = struct_ptr->begin();
+            }
+            if (_ptr >= struct_ptr->begin() && _ptr < struct_ptr->end()) {
+                  _ptr++;
+            }
+            if (_ptr == struct_ptr->end()) {
+                  throw FullContainer("Cannot add any more objects to this container!\n");
+            }
+            return _ptr;
+      }
+} // namespace
 
 TEMPLATE
 FixedSizeContainer<T>::FixedSizeContainer(const size_t _size) : m_Size{_size} {
       if (m_Size <= 0) {
             throw InvalidContainerSize("Container size must be unsigned integer above 0!");
       }
-
       m_Container(new T[m_Size]);
+      m_HELPER = nullptr;
 }
 
 TEMPLATE
-auto FixedSizeContainer<T>::operator==(const FixedSizeContainer<typename T><T> &other) const noexcept -> bool {
-      bool f_cond = (this->m_First == other.First());
-      bool s_cond = (this->m_Second == other.Second());
-      bool t_cond = (this->m_Third == other.Third());
-
-      return (f_cond && s_cond && t_cond);
+auto FixedSizeContainer<T>::operator<<(const T &other) -> void {
+      *(categorize_shared_ptr(this->m_HELPER, this));
+}
+TEMPLATE
+auto FixedSizeContainer<T>::operator<<(T &&other) -> void {
+      *(categorize_shared_ptr(this->m_HELPER, this)) = std::move(other);
 }
 
 TEMPLATE
-auto Triplet<T>::operator!=(const Triplet<T> &other) const noexcept -> bool {
+auto FixedSizeContainer<T>::operator==(const FixedSizeContainer<T> &other) const noexcept -> bool {
+      if (this->m_Size == other.m_Size) {
+            for (size_t ptr_offset = 0; ptr_offset < this->m_Size; ptr_offset++) {
+                  if (*(this->m_Container + ptr_offset) != *(other.m_Container + ptr_offset)) {
+                        return false;
+                  }
+            }
+            return true;
+      }
+      return false;
+}
+
+TEMPLATE
+auto FixedSizeContainer<T>::operator!=(const FixedSizeContainer<T> &other) const noexcept -> bool {
       if (*this == other) {
             return false;
       }
@@ -32,40 +60,30 @@ auto Triplet<T>::operator!=(const Triplet<T> &other) const noexcept -> bool {
 }
 
 TEMPLATE
-auto Triplet<T>::operator[](size_t idx) const -> T & {
-      switch (idx) {
-      case 0:
-            return this->m_First;
-            break;
-      case 1:
-            return this->m_Second;
-            break;
-      case 2:
-            return this->m_Third;
-            break;
-      default:
-            throw std::invalid_argument("Index out the range!\n");
-            break;
+auto FixedSizeContainer<T>::operator[](size_t idx) const -> T & {
+      if (idx > this->m_Size) {
+            throw InvalidIndex("Provided index exceed conatiner size!\n");
       }
+      return *(this->m_Container + (idx - 1));
 }
 
 TEMPLATE
-Triplet<T>::itterator::itterator(POINTER _ptr) : m_Ptr{_ptr} {};
+FixedSizeContainer<T>::itterator::itterator(POINTER _ptr) : m_Ptr{_ptr} {};
 TEMPLATE
-Triplet<T>::itterator::itterator(const itterator &other) : m_Ptr{other.m_Ptr} {}
+FixedSizeContainer<T>::itterator::itterator(const itterator &other) : m_Ptr{other.m_Ptr} {}
 TEMPLATE
-auto Triplet<T>::itterator::operator++() noexcept -> REFERENCE {
+auto FixedSizeContainer<T>::itterator::operator++() noexcept -> REFERENCE {
       this->m_Ptr++;
       return this;
 }
 TEMPLATE
-auto Triplet<T>::itterator::operator++(T) -> itterator {
+auto FixedSizeContainer<T>::itterator::operator++(T) -> itterator {
       itterator temp(m_Ptr++);
       *this = temp;
       return *this;
 }
 
 TEMPLATE
-auto Triplet<T>::begin() const -> itterator { return itterator(&(this->m_First)); }
+auto FixedSizeContainer<T>::begin() const -> itterator { return itterator(&(this->m_First)); }
 TEMPLATE
-auto Triplet<T>::end() const -> itterator { return itterator(&(this->m_Third)); }
+auto FixedSizeContainer<T>::end() const -> itterator { return itterator(&(this->m_Third)); }

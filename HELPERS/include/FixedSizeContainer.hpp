@@ -1,17 +1,15 @@
 #pragma once
 
-#include <algorithm>
 #include <cstddef>
 #include <memory>
 
 template <typename T> class FixedSizeContainer {
-      using pointer = std::unique_ptr<T>;
-
-  private:
+private:
       size_t m_Size;
-      pointer m_Container;
+      std::shared_ptr<T> m_Container;
+      std::shared_ptr<T> m_HELPER;
 
-  public:
+public:
       FixedSizeContainer(const size_t _size);
       ~FixedSizeContainer();
 
@@ -36,4 +34,6 @@ template <typename T> class FixedSizeContainer {
       auto operator[](size_t idx) const -> T &;
       auto operator==(const FixedSizeContainer &other) const noexcept -> bool;
       auto operator!=(const FixedSizeContainer &other) const noexcept -> bool;
+      auto operator<<(const T &other) -> void;
+      auto operator<<(T &&other) -> void;
 };
