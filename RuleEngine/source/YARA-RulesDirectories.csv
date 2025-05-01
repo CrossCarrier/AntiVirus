@@ -1,0 +1,11 @@
+1, /rules-master/antidebug_antivm
+2, /rules-master/capabilities
+3, /rules-master/cve_rules
+4, /rules-master/crypto
+5, /rules-master/exploit_kits
+6, /rules-master/maldocs
+7, /rules-master/malware
+8, /rules-master/packers
+9, /rules-master/webshells
+10, /rules-master/email
+11, /rules-master/mobile_malware

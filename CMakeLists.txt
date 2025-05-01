@@ -11,9 +11,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-Wall -Werror -Wpedantic)
 
 # OpenSSL       
-set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
-set(OPENSSL_INCLUDE_DIR "/opt/homebrew/opt/openssl@3/include")
 find_package(OpenSSL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YARA REQUIRED yara)
+find_package(Boost REQUIRED COMPONENTS filesystem system)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIR})
 
 # Zewnętrzne źródła (np. pliki źródłowe projektu)
 add_executable(AntiVirus
@@ -25,7 +28,9 @@ add_executable(AntiVirus
     DirectoryManager/include/Directory.hpp
     DirectoryManager/source/Directory.cpp
     Scanner/include/Scanner.hpp
+    Scanner/include/YARA_Wrapper.hpp
     Scanner/source/Scanner.cpp
+    Scanner/source/YARA_Wrapper.cpp
     Logger/include/Logger.hpp
     Logger/source/Logger.cpp
     Cleaner/include/Cleaner.hpp
@@ -33,11 +38,9 @@ add_executable(AntiVirus
 )
 
 # Linkowanie
-target_link_libraries(AntiVirus PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-
-# 🧠 DODATKOWO: Podaj sysroot do SDK systemowego, żeby nie walczyć z błędami _Alignof
-if(APPLE)
-    set(SDKROOT "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk")
-    target_compile_options(AntiVirus PRIVATE -isysroot ${SDKROOT})
-    target_link_options(AntiVirus PRIVATE -isysroot ${SDKROOT})
-endif()
+target_include_directories(AntiVirus PRIVATE ${YARA_INCLUDE_DIRS})
+target_link_libraries(
+    AntiVirus PRIVATE OpenSSL::SSL 
+    OpenSSL::Crypto
+    ${YARA_LIBRARIES}
+    ${Boost_LIBRARIES})

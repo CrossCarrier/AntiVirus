@@ -1,11 +1,11 @@
 BasedOnStyle: LLVM
 UseTab: Never
-IndentWidth: 6
-TabWidth: 6
+IndentWidth: 4
+TabWidth: 4
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
 ColumnLimit: 100
-AccessModifierOffset: -6
+AccessModifierOffset: -4
 NamespaceIndentation: All
 SortIncludes: true
 AlignAfterOpenBracket: Align
