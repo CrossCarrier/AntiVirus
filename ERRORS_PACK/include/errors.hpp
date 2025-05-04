@@ -8,9 +8,9 @@ protected:
       std::string error_message;
 
 public:
-      BasicErrorBuild(const char *message);
+      explicit BasicErrorBuild(std::string&& message);
 
-      virtual auto what() const throw() -> const char *;
+      [[nodiscard]]auto what() const noexcept -> const char* override;
 };
 
 class InvalidContainerSize : public BasicErrorBuild {
@@ -31,4 +31,9 @@ public:
 class InvalidIndex : public BasicErrorBuild {
 public:
       using BasicErrorBuild::BasicErrorBuild;
+};
+
+class PathNotFound : public BasicErrorBuild {
+public:
+    using BasicErrorBuild::BasicErrorBuild;
 };

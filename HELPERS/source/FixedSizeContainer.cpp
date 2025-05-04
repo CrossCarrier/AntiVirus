@@ -46,7 +46,6 @@ auto FixedSizeContainer<T>::operator==(const FixedSizeContainer<T> &other) const
                         return false;
                   }
             }
-            return true;
       }
       return false;
 }

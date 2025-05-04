@@ -12,6 +12,7 @@ auto YARA_Wrapper::YARA_CALLBACK_FUNCTION(YR_SCAN_CONTEXT *context, int message,
     }
     return CALLBACK_CONTINUE;
 }
+
 auto YARA_Wrapper::YARA_SCAN(const boost::filesystem::path &_file,
                              const boost::filesystem::path &_rules_config_file,
                              const void *_results) -> void {

@@ -1,8 +1,8 @@
 #include "../include/HASH-SHA256.hpp"
 #include <fstream>
-#include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <iomanip>
 
 #define EVP_MAX_SIZE 32
 #define READING_BUFFOR 2048

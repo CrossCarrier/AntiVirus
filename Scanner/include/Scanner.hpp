@@ -9,13 +9,13 @@ private:
 
 public:
     static auto access_to_RuleEngine() -> RuleEngine *;
-    static auto scan_file(const boost::filesystem::path &_file_path) -> void;
+    static auto scan_file(const File& _file) -> FINAL_RESULTS;
 
     static auto scan_directory(const boost::filesystem::path &_dir_path) -> void;
 
     /* FORMAT JSON*/
     /* Build of the file specified in manuals*/
-    static auto scan_from_config_file(const boost::filesystem::path _config_file_path) -> void;
+    static auto scan_from_config_file(const boost::filesystem::path& _config_file_path) -> void;
     /* INFO about scanning the system would be avaiable in specified json file*/
     static auto scan_system() -> void;
 };

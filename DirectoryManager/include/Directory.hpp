@@ -6,16 +6,18 @@
 #include "../../FileManager/include/File.hpp"
 
 class Directory {
-  private:
-      boost::filesystem::path m_DirectoryPath;
-      int m_NumberOfThreats            = 0;
-      ThreatLevel m_AverageThreatLevel = ThreatLevel::NONE;
-      std::time_t m_ModificationDate   = 0;
+    using DIRECTORY_FILES = std::vector<std::string>;
 
-  public:
-      Directory(std::filesystem::path working_directory_path);
+private:
+    DIRECTORY_FILES m_ALL;
+    boost::filesystem::path m_DirectoryPath int m_NumberOfThreats = 0;
+    ThreatLevel m_AverageThreatLevel                              = ThreatLevel::NONE;
+    std::time_t m_ModificationDate                                = 0;
 
-      auto get_NumberOfThreats() const -> int;
-      auto get_AverageThreatLevel() const -> ThreatLevel;
-      auto isDangerous() const -> bool;
+public:
+    Directory(boost::filesystem::path working_directory_path);
+
+    auto get_NumberOfThreats() const -> int;
+    auto get_AverageThreatLevel() const -> ThreatLevel;
+    auto isDangerous() const -> bool;
 };
