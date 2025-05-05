@@ -27,8 +27,8 @@ add_executable(AntiVirus
 #    Logger/source/Logger.cpp
 #    Cleaner/include/Cleaner.hpp
 #    Cleaner/source/Cleaner.cpp
-#    RuleEngine/include/RuleEngine.hpp
-#    RuleEngine/source/RuleEngine.cpp
+        RuleEngine/include/RuleEngine.hpp
+        RuleEngine/source/RuleEngine.cpp
         main.cpp
         FileManager/include/HASH-SHA256.hpp
         FileManager/source/HASH-SHA256.cpp
@@ -39,6 +39,11 @@ add_executable(AntiVirus
         HELPERS/include/json_manager.hpp
         HELPERS/include/json.hpp
         HELPERS/source/json_manager.cpp
+)
+
+# Set working directory for the target
+set_target_properties(AntiVirus PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
 
 # Linkowanie
