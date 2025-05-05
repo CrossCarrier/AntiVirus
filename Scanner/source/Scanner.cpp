@@ -78,8 +78,9 @@ auto Scanner::scan_directory(const Directory &_directory) -> int {
         auto file = _directory.get_Files().at(file_index);
         if (file_index % 2 == 0) {
             files_1.push_back(file);
+        } else {
+            files_2.push_back(file);
         }
-        files_2.push_back(file);
     }
 
     std::thread worker_1(HELPER_MultiThreadScan, files_1);
