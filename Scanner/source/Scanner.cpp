@@ -71,14 +71,17 @@ auto Scanner::scan_file(const File &_file, SCAN_RESULTS *results) -> int {
 }
 
 auto Scanner::scan_directory(const Directory &_directory) -> int {
-    std::vector<std::thread> working_threads(WORKING_THREADS);
+    using TREADS_CONTAINER = std::vector<std::thread>;
+    std::unique_ptr<TREADS_CONTAINER> working_threads =
+        std::make_unique<TREADS_CONTAINER>(WORKING_THREADS);
 
     for (size_t container_idx; container_idx < WORKING_THREADS; container_idx++) {
-        working_threads.emplace_back(
-            std::thread(HELPER_MultiThreadScan, &_directory.get_Files()[container_idx]));
+        (*working_threads)
+            .emplace_back(
+                std::thread(HELPER_MultiThreadScan, &_directory.get_Files()[container_idx]));
     }
 
-    for (auto& thread : working_threads) {
+    for (auto &thread : *working_threads) {
         thread.join();
     }
 
