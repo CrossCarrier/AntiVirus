@@ -12,7 +12,7 @@
 
 #define SUCCESS 0
 #define ERROR -1
-
+#define WORKING_THREADS 4
 namespace {
     using DOUBLE_GROUP = FixedSizeContainer<std::string>;
     using TRIPLE_GROUP = FixedSizeContainer<std::string>;
@@ -71,20 +71,16 @@ auto Scanner::scan_file(const File &_file, SCAN_RESULTS *results) -> int {
 }
 
 auto Scanner::scan_directory(const Directory &_directory) -> int {
-    std::vector<File> files_1;
-    std::vector<File> files_2;
+    std::vector<std::thread> working_threads(WORKING_THREADS);
 
-    for (size_t file_index = 0; file_index < _directory.get_Files().size(); file_index++) {
-        auto file = _directory.get_Files().at(file_index);
-        if (file_index % 2 == 0) {
-            files_1.push_back(file);
-        } else {
-            files_2.push_back(file);
-        }
+    for (size_t container_idx; container_idx < WORKING_THREADS; container_idx++) {
+        working_threads.emplace_back(
+            std::thread(HELPER_MultiThreadScan, &_directory.get_Files()[container_idx]));
     }
 
-    std::thread worker_1(HELPER_MultiThreadScan, files_1);
-    std::thread worker_2(HELPER_MultiThreadScan, files_2);
+    for (auto& thread : working_threads) {
+        thread.join();
+    }
 
     return SUCCESS;
 }
