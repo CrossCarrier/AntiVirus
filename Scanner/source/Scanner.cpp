@@ -1,112 +1,51 @@
 #include "../include/Scanner.hpp"
 #include "../../FileManager/include/File.hpp"
-#include "../../HELPERS/include/FixedSizeContainer.hpp"
-#include "../../HELPERS/include/json_manager.hpp"
+#include "../../HELPERS/include/support.hpp"
+#include "../../RuleEngine/include/RuleEngine.hpp"
 #include "../include/YARA_Wrapper.hpp"
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <iostream>
+#include <algorithm>
+#include <expected>
 #include <memory>
 #include <thread>
 #include <vector>
 
-#define SUCCESS 0
-#define ERROR -1
-#define WORKING_THREADS 4
 namespace {
-    using DOUBLE_GROUP = FixedSizeContainer<std::string>;
-    using TRIPLE_GROUP = FixedSizeContainer<std::string>;
+    using PATHS_CONTAINER = std::vector<std::filesystem::path>;
 
-    template <typename STRUCT_TYPE>
-    auto HELPER_ScanOverRulesDir(const boost::filesystem::path &_file,
-                                 STRUCT_TYPE &HARDCODED_RULES_DIRS, SCAN_RESULTS *_results)
-        -> void {
-        for (const auto &CONFIG : HARDCODED_RULES_DIRS) {
-            boost::filesystem::directory_iterator dir_iter{CONFIG};
-            while (dir_iter != boost::filesystem::directory_iterator{}) {
-                YARA_Wrapper::YARA_SCAN(_file, *dir_iter, &_results);
-            }
-        }
-    }
-
-    inline auto HELPER_FetchRules(const RuleEngine *_rule_engine) -> std::vector<std::string> {
-        return _rule_engine->get_Rules();
-    }
-    inline auto HELPER_FetchFiles(const Directory *_directory) -> std::vector<File> {
-        return _directory->get_Files();
-    }
-    auto HELPER_MultiThreadScan(const std::vector<File> *_files) -> int {
-        for (auto const &file : *_files) {
-            std::unique_ptr<SCAN_RESULTS> resutls;
-            if (Scanner::scan_file(file, resutls.get()) == ERROR) {
-                std::cerr << "ERROR OCCURED - STOPING SCANNING" << std::endl;
-                return ERROR;
-            } else {
-                file.set_ScanningResults(resutls.get());
-            }
-        }
-        return SUCCESS;
+    auto scan_multiple_files(const PATHS_CONTAINER &group_of_file_paths) -> void {
+        std::for_each(group_of_file_paths.begin(), group_of_file_paths.end(),
+                      [](const std::filesystem::path &single_file_path) -> void {
+                          std::unique_ptr<SCAN_RESULTS> results;
+                          scanner::scan_file(single_file_path, results.get());
+                      });
     }
 } // namespace
 
-auto Scanner::access_to_RuleEngine() -> RuleEngine * { return supported_RuleEngine; }
+namespace scanner {
+    /* flag --scan_file 'FILEPATH' -> Generating output.json */
+    auto scan_file(const std::filesystem::path &file_path) -> SCAN_RESULTS {
+        using namespace std::filesystem;
+        SCAN_RESULTS results;
 
-auto Scanner::scan_file(const File &_file, SCAN_RESULTS *results) -> int {
-    using namespace boost::filesystem;
+        for (const auto &directory_path : rule_engine::get_Rules()) {
+            std::unique_ptr<directory_iterator> iterator = std::make_unique<directory_iterator>(directory_path);
 
-    for (const auto &directory_path : HELPER_FetchRules(supported_RuleEngine)) {
-        std::unique_ptr<directory_iterator> itterator =
-            std::make_unique<directory_iterator>(directory_path);
-
-        while (*itterator != directory_iterator{}) {
-            try {
-                YARA_Wrapper::YARA_SCAN(_file.get_FilePath(), **itterator, &results);
-            } catch (std::exception &_) {
-                std::cerr << _.what() << std::endl;
-                return ERROR;
+            while (*iterator != directory_iterator{}) {
+                YARA_Wrapper::YARA_SCAN(file_path, **iterator.get(), &results);
             }
         }
-    }
-    return SUCCESS;
-}
 
-auto Scanner::scan_directory(const Directory &_directory) -> int {
-    using TREADS_CONTAINER = std::vector<std::thread>;
-    std::unique_ptr<TREADS_CONTAINER> working_threads =
-        std::make_unique<TREADS_CONTAINER>(WORKING_THREADS);
-
-    for (size_t container_idx; container_idx < WORKING_THREADS; container_idx++) {
-        (*working_threads)
-            .emplace_back(
-                std::thread(HELPER_MultiThreadScan, &_directory.get_Files()[container_idx]));
+        return results;
     }
 
-    for (auto &thread : *working_threads) {
-        thread.join();
+    /* flag --scan_dir 'DIR_PATH' -> Generating output.json */
+    auto scan_directory(const std::filesystem::path &directory_path) -> std::vector<SCAN_RESULTS> {
+        using TREADS_CONTAINER = std::vector<std::thread>;
+        auto files = support::filesystem_utils::load_from_directory(directory_path);
+
+        
     }
 
-    return SUCCESS;
-}
-
-auto Scanner::scan_from_config_file(const boost::filesystem::path &_config_file_path) -> int {
-    auto config_data = json_manager::read_data(_config_file_path);
-
-    /* DIRECTORIES */
-    for (const auto &directory : config_data["Directories"]) {
-        if (Scanner::scan_directory(Directory(boost::filesystem::path(directory))) == ERROR) {
-            return ERROR;
-        }
-    }
-    /* FILES */
-    for (const auto &file : config_data["Files"]) {
-        File _file(file);
-        std::unique_ptr<SCAN_RESULTS> results;
-
-        if (Scanner::scan_file(_file, results.get()) == ERROR) {
-            return ERROR;
-        }
-        _file.set_ScanningResults(results.get());
-    }
-
-    return SUCCESS;
-}
+    /* flag --scan_from_config 'CONFIG_JSON_PATH' -> Generating output.json */
+    /* flag --system_scan --full/--quick -> Generating output.json */
+} // namespace scanner

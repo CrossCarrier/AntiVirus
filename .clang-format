@@ -4,11 +4,13 @@ IndentWidth: 4
 TabWidth: 4
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
-ColumnLimit: 100
+ColumnLimit: 130
 AccessModifierOffset: -4
 NamespaceIndentation: All
 SortIncludes: true
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
 AlignTrailingComments: true
+AlwaysBreakTemplateDeclarations: Yes
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
