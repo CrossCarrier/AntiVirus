@@ -1,5 +1,4 @@
 #include "../include/RuleEngine.hpp"
-#include "../../HELPERS/include/json_manager.hpp"
 
 namespace rule_engine {
     namespace config_files {

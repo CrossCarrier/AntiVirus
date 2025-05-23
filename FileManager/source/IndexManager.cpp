@@ -50,4 +50,5 @@ namespace index_manager {
         update_json_with_files(data, sys_files);
         support::json_utils::write_data(__path, data);
     }
+    
 } // namespace index_manager

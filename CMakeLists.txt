@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.30)
+set(CMAKE_CXX_COMPILER "/opt/homebrew/bin/g++-14")
+set(CMAKE_C_COMPILER "/opt/homebrew/bin/gcc-14")
+set(CMAKE_CXX_STANDARD 23)
 project(AntiVirus)
-
-# Standard języka
-set(CMAKE_CXX_STANDARD 17)
 
 # Flagi
 # add_compile_options(-Wall -Werror -Wpedantic)
@@ -14,6 +14,14 @@ find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
+
+include (FetchContent)
+FetchContent_Declare(
+        cli11
+        GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+        GIT_TAG v2.3.2
+    )
+FetchContent_MakeAvailable(cli11)
 
 # Zewnętrzne źródła (np. pliki źródłowe projektu)
 add_executable(AntiVirus
@@ -27,18 +35,19 @@ add_executable(AntiVirus
 #    Logger/source/Logger.cpp
 #    Cleaner/include/Cleaner.hpp
 #    Cleaner/source/Cleaner.cpp
-        RuleEngine/include/RuleEngine.hpp
-        RuleEngine/source/RuleEngine.cpp
         main.cpp
         FileManager/include/HASH-SHA256.hpp
         FileManager/source/HASH-SHA256.cpp
+        RuleEngine/include/RuleEngine.hpp
+        RuleEngine/source/RuleEngine.cpp
+        Scanner/include/scanner.hpp
+        Scanner/source/scanner.cpp
+        HELPERS/include/support.hpp
         FileManager/source/File.cpp
         FileManager/include/File.hpp
         ERRORS_PACK/include/errors.hpp
         ERRORS_PACK/source/errors.cpp
-        HELPERS/include/json_manager.hpp
         HELPERS/include/json.hpp
-        HELPERS/source/json_manager.cpp
 )
 
 # Set working directory for the target
@@ -48,7 +57,8 @@ set_target_properties(AntiVirus PROPERTIES
 
 # Linkowanie
 target_include_directories(AntiVirus PRIVATE ${YARA_INCLUDE_DIRS})
-target_link_libraries(
-    AntiVirus PRIVATE OpenSSL::SSL 
+target_link_libraries(AntiVirus PRIVATE 
+    CLI11::CLI11
+    OpenSSL::SSL 
     OpenSSL::Crypto
     ${Boost_LIBRARIES})

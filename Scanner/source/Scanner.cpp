@@ -9,18 +9,6 @@
 #include <thread>
 #include <vector>
 
-namespace {
-    using PATHS_CONTAINER = std::vector<std::filesystem::path>;
-
-    auto scan_multiple_files(const PATHS_CONTAINER &group_of_file_paths) -> void {
-        std::for_each(group_of_file_paths.begin(), group_of_file_paths.end(),
-                      [](const std::filesystem::path &single_file_path) -> void {
-                          std::unique_ptr<SCAN_RESULTS> results;
-                          scanner::scan_file(single_file_path, results.get());
-                      });
-    }
-} // namespace
-
 namespace scanner {
     /* flag --scan_file 'FILEPATH' -> Generating output.json */
     auto scan_file(const std::filesystem::path &file_path) -> SCAN_RESULTS {
@@ -42,8 +30,6 @@ namespace scanner {
     auto scan_directory(const std::filesystem::path &directory_path) -> std::vector<SCAN_RESULTS> {
         using TREADS_CONTAINER = std::vector<std::thread>;
         auto files = support::filesystem_utils::load_from_directory(directory_path);
-
-        
     }
 
     /* flag --scan_from_config 'CONFIG_JSON_PATH' -> Generating output.json */
