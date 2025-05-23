@@ -1,13 +1,9 @@
 #include "../include/Scanner.hpp"
 #include "../../FileManager/include/File.hpp"
-#include "../../HELPERS/include/support.hpp"
 #include "../../RuleEngine/include/RuleEngine.hpp"
 #include "../include/YARA_Wrapper.hpp"
-#include <algorithm>
-#include <expected>
+#include <iostream>
 #include <memory>
-#include <thread>
-#include <vector>
 
 namespace scanner {
     /* flag --scan_file 'FILEPATH' -> Generating output.json */
@@ -18,7 +14,7 @@ namespace scanner {
         for (const auto &directory_path : rule_engine::get_Rules()) {
             std::unique_ptr<directory_iterator> iterator = std::make_unique<directory_iterator>(directory_path);
 
-            while (*iterator != directory_iterator{}) {
+            for (const auto &director_path : std::filesystem::directory_iterator(directory_path)) {
                 YARA_Wrapper::YARA_SCAN(file_path, **iterator.get(), &results);
             }
         }
@@ -27,10 +23,11 @@ namespace scanner {
     }
 
     /* flag --scan_dir 'DIR_PATH' -> Generating output.json */
-    auto scan_directory(const std::filesystem::path &directory_path) -> std::vector<SCAN_RESULTS> {
-        using TREADS_CONTAINER = std::vector<std::thread>;
-        auto files = support::filesystem_utils::load_from_directory(directory_path);
-    }
+    // auto scan_directory(const std::filesystem::path &directory_path) -> std::vector<SCAN_RESULTS> {
+    //     using TREADS_CONTAINER = std::vector<std::thread>;
+    //     auto files = support::filesystem_utils::load_from_directory(directory_path);
+
+    // }
 
     /* flag --scan_from_config 'CONFIG_JSON_PATH' -> Generating output.json */
     /* flag --system_scan --full/--quick -> Generating output.json */
