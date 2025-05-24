@@ -18,20 +18,46 @@ auto YARA_Wrapper::YARA_SCAN(const std::filesystem::path &_file, const std::file
                              const void *_results) -> void {
     yr_initialize();
 
-    YR_RULES *rules;
-    YR_COMPILER *compiler;
+    YR_RULES *rules = nullptr;
+    YR_COMPILER *compiler = nullptr;
 
-    yr_compiler_create(&compiler);
+    int result = yr_compiler_create(&compiler);
+    if (result != ERROR_SUCCESS) {
+        std::cout << "Failed to create YARA compiler: " << result << std::endl;
+        yr_finalize();
+        return;
+    }
+
     FILE *RulesConfigFile = fopen(_rules_config_file.c_str(), "r");
+    if (!RulesConfigFile) {
+        std::cout << "Cannot open rule config file: " << _rules_config_file << std::endl;
+        yr_compiler_destroy(compiler);
+        yr_finalize();
+        return;
+    }
 
-    yr_compiler_add_file(compiler, RulesConfigFile, nullptr, _file.c_str());
-    yr_compiler_get_rules(compiler, &rules);
-
+    result = yr_compiler_add_file(compiler, RulesConfigFile, nullptr, _rules_config_file.filename().c_str());
     fclose(RulesConfigFile);
-    auto scan_results =
-        yr_rules_scan_file(rules, _file.c_str(), SCAN_FLAGS_FAST_MODE, YARA_CALLBACK_FUNCTION, const_cast<void *>(_results), 0);
 
-    /* Something need to be done with scan results variable*/
+    if (result != ERROR_SUCCESS) {
+        yr_compiler_destroy(compiler);
+        yr_finalize();
+        return;
+    }
+
+    result = yr_compiler_get_rules(compiler, &rules);
+    if (result != ERROR_SUCCESS || rules == nullptr) {
+        yr_compiler_destroy(compiler);
+        yr_finalize();
+        return;
+    }
+
+    result =
+        yr_rules_scan_file(rules, _file.c_str(), SCAN_FLAGS_FAST_MODE, YARA_CALLBACK_FUNCTION, const_cast<void *>(_results), 0);
+    if (result != ERROR_SUCCESS) {
+        std::cout << "Failed to scan file: " << _file.c_str() << std::endl;
+    }
+
     yr_rules_destroy(rules);
     yr_compiler_destroy(compiler);
     yr_finalize();

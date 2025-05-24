@@ -3,7 +3,6 @@
     "CAPABILITIES": "../antivirus/rules-master/capabilities",
     "CRYPTO": "../antivirus/rules-master/crypto",
     "CVE_RULES": "../antivirus/rules-master/cve_rules",
-    "DEPRECATED": "../antivirus/rules-master/deprecated",
     "EMAIL": "../antivirus/rules-master/email",
     "EXPLOIT_KITS": "../antivirus/rules-master/exploit_kits",
     "MALDOCS": "../antivirus/rules-master/maldocs",

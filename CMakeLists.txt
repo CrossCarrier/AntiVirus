@@ -9,8 +9,23 @@ project(AntiVirus)
 
 # OpenSSL       
 find_package(OpenSSL REQUIRED)
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(YARA REQUIRED yara)
+
+# YARA library
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YARA REQUIRED yara)
+
+# Check if YARA was found
+if(NOT YARA_FOUND)
+    message(FATAL_ERROR "YARA library not found. Please install YARA development package.")
+endif()
+
+# Add YARA include directories and library directories
+include_directories(${YARA_INCLUDE_DIRS})
+link_directories(${YARA_LIBRARY_DIRS})
+
+# Set YARA compile flags if any
+add_compile_options(${YARA_CFLAGS_OTHER})
+
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
@@ -36,18 +51,24 @@ add_executable(AntiVirus
 #    Cleaner/include/Cleaner.hpp
 #    Cleaner/source/Cleaner.cpp
         main.cpp
-        FileManager/include/HASH-SHA256.hpp
-        FileManager/source/HASH-SHA256.cpp
+        Scanner/include/YARA_Wrapper.hpp
+        Scanner/source/YARA_Wrapper.cpp
+        Scanner/include/Scanner.hpp
+        Scanner/source/Scanner.cpp
         RuleEngine/include/RuleEngine.hpp
         RuleEngine/source/RuleEngine.cpp
-        Scanner/include/scanner.hpp
-        Scanner/source/scanner.cpp
         HELPERS/include/support.hpp
-        FileManager/source/File.cpp
+        HELPERS/source/support.cpp
+        HELPERS/include/json.hpp
+        FileManager/include/HASH-SHA256.hpp
+        FileManager/source/HASH-SHA256.cpp
         FileManager/include/File.hpp
+        FileManager/source/File.cpp
+        FileManager/include/IndexManager.hpp
+        FileManager/source/IndexManager.cpp
         ERRORS_PACK/include/errors.hpp
         ERRORS_PACK/source/errors.cpp
-        HELPERS/include/json.hpp
+        
 )
 
 # Set working directory for the target
@@ -56,9 +77,23 @@ set_target_properties(AntiVirus PROPERTIES
 )
 
 # Linkowanie
-target_include_directories(AntiVirus PRIVATE ${YARA_INCLUDE_DIRS})
+target_include_directories(AntiVirus PRIVATE 
+    ${YARA_INCLUDE_DIRS}
+    Scanner/include
+    FileManager/include
+    HELPERS/include
+    ERRORS_PACK/include
+    RuleEngine/include
+)
+
+# Add YARA compiler definitions
+target_compile_definitions(AntiVirus PRIVATE HAVE_YARA=1)
+
 target_link_libraries(AntiVirus PRIVATE 
     CLI11::CLI11
     OpenSSL::SSL 
     OpenSSL::Crypto
-    ${Boost_LIBRARIES})
+    ${Boost_LIBRARIES}
+    ${YARA_LIBRARIES}
+    pthread
+)

@@ -2,8 +2,8 @@
 #include "../../FileManager/include/File.hpp"
 #include "../../RuleEngine/include/RuleEngine.hpp"
 #include "../include/YARA_Wrapper.hpp"
+#include <algorithm>
 #include <iostream>
-#include <memory>
 
 namespace scanner {
     /* flag --scan_file 'FILEPATH' -> Generating output.json */
@@ -12,11 +12,28 @@ namespace scanner {
         SCAN_RESULTS results;
 
         for (const auto &directory_path : rule_engine::get_Rules()) {
-            std::unique_ptr<directory_iterator> iterator = std::make_unique<directory_iterator>(directory_path);
 
-            for (const auto &director_path : std::filesystem::directory_iterator(directory_path)) {
-                YARA_Wrapper::YARA_SCAN(file_path, **iterator.get(), &results);
+            if (!exists(directory_path)) {
+                std::cerr << "Directory path " << directory_path.c_str() << "do not exists!" << std::endl;
+                continue;
             }
+
+            std::vector<path> loaded_rules;
+            for (const auto &rule_file : directory_iterator(std::move(directory_path))) {
+                if (rule_file.is_regular_file()) {
+                    loaded_rules.push_back(rule_file);
+                }
+            }
+
+            std::ranges::for_each(loaded_rules, [&](const path &rule_path) -> void {
+                if (exists(rule_path) && rule_path.extension() == ".yar") {
+                    try {
+                        YARA_Wrapper::YARA_SCAN(file_path, rule_path, &results);
+                    } catch (...) {
+                        std::cerr << "Error occured while scanning by rule : " << rule_path.c_str() << std::endl;
+                    }
+                }
+            });
         }
 
         return results;

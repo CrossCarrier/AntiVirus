@@ -1,5 +1,31 @@
 #include "../include/support.hpp"
 
+namespace {
+    auto is_file_accessible(const std::filesystem::path &file_path) -> bool {
+        std::error_code ec;
+
+        if (!std::filesystem::exists(file_path, ec) || ec) {
+            return false;
+        }
+
+        if (!std::filesystem::is_regular_file(file_path, ec) || ec) {
+            return false;
+        }
+
+        auto perms = std::filesystem::status(file_path, ec).permissions();
+        if (ec || (perms & std::filesystem::perms::owner_read) == std::filesystem::perms::none) {
+            return false;
+        }
+
+        std::ifstream test_file(file_path, std::ios::binary);
+        if (!test_file.is_open()) {
+            return false;
+        }
+
+        return true;
+    }
+} // namespace
+
 namespace support {
     namespace filesystem_utils {
         auto load_from_directory(const FILE::path &__path) -> PATHS_CONTAINER {
@@ -24,8 +50,10 @@ namespace support {
                 if (er) {
                     return;
                 }
-                if (FILE::is_regular_file(entry, er)) {
-                    __data.emplace_back(entry.path());
+                if (FILE::is_regular_file(entry, er) && !er) {
+                    if (is_file_accessible(entry.path())) {
+                        __data.emplace_back(entry.path());
+                    }
                 }
             });
 

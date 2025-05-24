@@ -1,6 +1,7 @@
 #pragma once
 #include <yara/arena.h>
 #include <yara/compiler.h>
+#include <yara/error.h>
 #include <yara/libyara.h>
 #include <yara/rules.h>
 #include <yara/scan.h>

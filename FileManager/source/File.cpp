@@ -24,6 +24,9 @@ File::File(const std::filesystem::path &file_path) {
         throw hash.error();
     }
 }
+auto File::get_FilePath() const noexcept -> fs::path {
+    return this->m_FilePath;
+}
 
 auto File::get_HashID() const noexcept -> std::string {
     return this->m_HashID;

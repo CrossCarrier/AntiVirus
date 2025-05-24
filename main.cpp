@@ -1,10 +1,12 @@
+#include "FileManager/include/IndexManager.hpp"
 #include "HELPERS/include/support.hpp"
 #include "Scanner/include/Scanner.hpp"
 #include <CLI/CLI.hpp>
 
 int main(int argc, char *argv[]) {
-    CLI::App app{"Antivirus"};
+    index_manager::update_metaindex("../antivirus/AppData/index_file.json");
 
+    CLI::App app{"Antivirus"};
     std::string file_path;
     app.add_option("-s, --scan_file", file_path, "Skanowanie pliku");
 
@@ -19,8 +21,9 @@ int main(int argc, char *argv[]) {
                 detected = "undetected";
             }
 
-            data[file_path]["viruses_detected"] = detected;
+            data[file_path]["detection status"] = detected;
             data[file_path]["viruses"] = results;
+            data[file_path]["number of detected viruses"] = results.size();
             support::json_utils::write_data(std::filesystem::path("output.json"), data);
         }
 

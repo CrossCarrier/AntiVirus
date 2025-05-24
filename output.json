@@ -1,6 +1,11 @@
 {
     "virus.txt": {
-        "viruses": [],
-        "viruses_detected": "undetected"
+        "detection status": "detected",
+        "number of detected viruses": 3,
+        "viruses": [
+            "LinuxBew",
+            "contains_base64",
+            "domain"
+        ]
     }
 }

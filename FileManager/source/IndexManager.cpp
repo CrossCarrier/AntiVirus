@@ -6,11 +6,11 @@
 
 namespace {
     template <typename T>
-    inline auto add_property(nlohmann::json &__json, const std::string &key, T value) -> void {
+    auto add_property(nlohmann::json &__json, const std::string &key, T value) -> void {
         __json[key] = value;
     }
 
-    inline auto create_file_entry(const File &file) -> nlohmann::json {
+    auto create_file_entry(const File &file) -> nlohmann::json {
         nlohmann::json entry;
         add_property(entry, "Hash", file.get_HashID());
         add_property(entry, "Modification time", file.get_LastModificationTime());
@@ -20,7 +20,8 @@ namespace {
 
     template <typename FileContainer>
     auto update_json_with_files(nlohmann::json &__json, const FileContainer &files) -> void {
-        std::ranges::for_each(files, [&](const File &__val) -> void { __json[__val.get_FilePath()] = create_file_entry(__val); });
+        std::ranges::for_each(
+            files, [&](const File &__val) -> void { __json[__val.get_FilePath().c_str()] = create_file_entry(__val); });
     }
 } // namespace
 namespace index_manager {
@@ -50,5 +51,5 @@ namespace index_manager {
         update_json_with_files(data, sys_files);
         support::json_utils::write_data(__path, data);
     }
-    
+
 } // namespace index_manager
