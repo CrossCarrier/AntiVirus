@@ -1,14 +1,9 @@
 #pragma once
 
+#include "../../FileManager/include/File.hpp"
 #include "../include/json.hpp"
-#include <algorithm>
 #include <filesystem>
 #include <vector>
-
-#include "../../ERRORS_PACK/include/errors.hpp"
-#include "../../FileManager/include/File.hpp"
-#include <filesystem>
-#include <fstream>
 
 namespace {
     template <typename Type>

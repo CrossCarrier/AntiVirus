@@ -45,7 +45,8 @@ namespace index_manager {
 
         return __data;
     }
-    FILE_PACK fetch_data() auto update_metaindex(FILE::path &&__path /* Path to file, where files are indexed*/) -> void {
+
+    auto update_metaindex(FILE::path &&__path /* Path to file, where files are indexed*/) -> void {
         nlohmann::json data;
         auto sys_files = support::filesystem_utils::load_files_from_system();
         update_json_with_files(data, sys_files);
