@@ -3,6 +3,7 @@
 #include "../../FileManager/include/File.hpp"
 #include "../include/json.hpp"
 #include <filesystem>
+#include <unordered_map>
 #include <vector>
 
 namespace {
@@ -19,23 +20,39 @@ namespace {
 namespace support {
     namespace container_utils {
         template <typename Type>
-        auto split(std::vector<Type> &&__val, int &&__chunks) -> std::vector<std::vector<Type>> {
-            std::vector<Type> result(__chunks);
+        auto split(const std::vector<Type> &__val, const int __chunks) -> std::vector<std::vector<Type>> {
+            std::vector<std::vector<Type>> result(__chunks);
 
             auto chunk_size = static_cast<int>(__val.size()) / __chunks;
             auto reminder = static_cast<int>(__val.size()) % __chunks;
 
             int idx = 0;
-            for (size_t i = 0; i < __chunks; i++) {
+            for (int i = 0; i < __chunks; i++) {
                 int __size = (i == (__chunks - 1)) ? reminder : chunk_size;
                 std::vector<Type> __con(__size);
-                for (size_t ii = 0; ii < __size; ii++) {
+
+                for (int ii = 0; ii < __size; ii++) {
                     __con.at(ii) = __val.at(idx++);
                 }
+
+                result.at(i) = std::move(__con);
             }
 
             return result;
         }
+        template <typename Type1, typename Type2>
+        auto operator+=(std::unordered_map<Type1, Type2> &lhs, const std::unordered_map<Type1, Type2> &rhs) -> void {
+            std::ranges::for_each(rhs, [&lhs](const std::pair<Type1, Type2> &data) -> void { lhs[data.first] = data.second; });
+        }
+
+        template <typename Type1, typename Type2, MapDescriptor... Maps>
+        auto mergeMaps(const std::vector<std::unordered_map<Type1, Type2>> maps) -> std::unordered_map<Type1, Type2> {
+            std::unordered_map<Type1, Type2> mergedResult;
+            std::ranges::for_each(maps, [&mergedResult](const auto &map) -> void { mergedResult += map; });
+
+            return mergedResult;
+        }
+
     } // namespace container_utils
     namespace filesystem_utils {
         namespace FILE = std::filesystem;
@@ -47,7 +64,7 @@ namespace support {
         using FILES_PACK = std::vector<File>;
 
         auto load_from_directory(const FILE::path &__path) -> PATHS_CONTAINER;
-        auto load_files_from_system(const bool __mod = false) -> FILES_PACK;
+        auto load_files_from_system() -> PATHS_CONTAINER;
 
     } // namespace filesystem_utils
     namespace json_utils {

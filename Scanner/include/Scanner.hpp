@@ -1,17 +1,18 @@
 #pragma once
 
 #include "../../FileManager/include/File.hpp"
+#include <algorithm>
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
 
 namespace scanner {
+    template <typename Type1, typename Type2>
+    auto operator+=(std::unordered_map<Type1, Type2> &lhs, const std::unordered_map<Type1, Type2> &rhs) -> void {
+        std::ranges::for_each(rhs,
+                              [&lhs](const std::pair<Type1, Type2> &data) -> void { lhs[data.first] = std::move(data.second); });
+    }
+
     auto scan_file(const std::filesystem::path &file_path) -> SCAN_RESULTS;
-    auto scan_directory(const std::filesystem::path &directory_path) -> std::unordered_map<std::string, SCAN_RESULTS>;
-    auto scan_directory(const std::vector<std::filesystem::path> &files) -> std::unordered_map<std::string, SCAN_RESULTS>;
-
-    auto quick_scan() -> void;
-    auto full_scan() -> void;
-
-    auto scan_system() -> void;
+    auto scanMultipleFiles(const std::vector<std::filesystem::path> &files) -> std::unordered_map<std::string, SCAN_RESULTS>;
 } // namespace scanner

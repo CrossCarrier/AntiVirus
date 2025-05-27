@@ -1,4 +1,7 @@
 #include "../include/support.hpp"
+#include "../../ERRORS_PACK/include/errors.hpp"
+#include <fstream>
+#include <iostream>
 
 namespace {
     auto is_file_accessible(const std::filesystem::path &file_path) -> bool {
@@ -9,16 +12,6 @@ namespace {
         }
 
         if (!std::filesystem::is_regular_file(file_path, ec) || ec) {
-            return false;
-        }
-
-        auto perms = std::filesystem::status(file_path, ec).permissions();
-        if (ec || (perms & std::filesystem::perms::owner_read) == std::filesystem::perms::none) {
-            return false;
-        }
-
-        std::ifstream test_file(file_path, std::ios::binary);
-        if (!test_file.is_open()) {
             return false;
         }
 
@@ -41,8 +34,8 @@ namespace support {
             return fetched_files;
         }
 
-        auto load_files_from_system(const bool __mod) -> FILES_PACK {
-            FILES_PACK __data;
+        auto load_files_from_system() -> PATHS_CONTAINER {
+            PATHS_CONTAINER __data;
             std::error_code er;
             DIRECTORY_ITER_R iter("/", ITER_OPTIONS::skip_permission_denied, er);
 
@@ -50,10 +43,9 @@ namespace support {
                 if (er) {
                     return;
                 }
-                if (FILE::is_regular_file(entry, er) && !er) {
-                    if (is_file_accessible(entry.path())) {
-                        __data.emplace_back(entry.path());
-                    }
+
+                if (is_file_accessible(entry.path())) {
+                    __data.push_back(std::move(entry.path()));
                 }
             });
 

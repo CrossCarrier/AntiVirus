@@ -2,12 +2,32 @@
 #include "../../FileManager/include/File.hpp"
 #include "../../RuleEngine/include/RuleEngine.hpp"
 #include "../include/YARA_Wrapper.hpp"
+#include "support.hpp"
 #include <algorithm>
+#include <exception>
+#include <future>
 #include <iostream>
 #include <unordered_map>
 
+namespace {
+    std::unordered_map<std::string, SCAN_RESULTS> scanMultipleFilesHELPER(const std::vector<std::filesystem::path> &filesPack) {
+        std::unordered_map<std::string, SCAN_RESULTS> singleThreadResult;
+
+        std::ranges::for_each(filesPack, [&singleThreadResult](const std::filesystem::path &filePath) -> void {
+            SCAN_RESULTS fileResults;
+            try {
+                fileResults = scanner::scan_file(filePath);
+            } catch (std::exception &ERROR) {
+                throw ERROR;
+            }
+            singleThreadResult[filePath.c_str()] = fileResults;
+        });
+
+        return singleThreadResult;
+    }
+} // namespace
+
 namespace scanner {
-    /* flag --scan_file 'FILEPATH' -> Generating output.json */
     auto scan_file(const std::filesystem::path &file_path) -> SCAN_RESULTS {
         using namespace std::filesystem;
         SCAN_RESULTS results;
@@ -39,25 +59,18 @@ namespace scanner {
 
         return results;
     }
+    auto scanMultipleFiles(const std::vector<std::filesystem::path> &files, const int numberOfThreads = 4)
+        -> std::unordered_map<std::string, SCAN_RESULTS> {
+        auto spliited_vector = support::container_utils::split(files, numberOfThreads);
+        std::vector<std::future<std::unordered_map<std::string, SCAN_RESULTS>>> futureResults;
+        std::unordered_map<std::string, SCAN_RESULTS> results;
 
-    auto scan_directory(const std::filesystem::path &directory_path) -> std::unordered_map<std::string, SCAN_RESULTS> {
-        std::unordered_map<std::string, SCAN_RESULTS> result{};
+        std::ranges::for_each(spliited_vector, [&futureResults](const auto &filesPack) -> void {
+            futureResults.emplace_back(std::async(std::launch::async, scanMultipleFilesHELPER, filesPack));
+        });
 
-        return result;
+        std::ranges::for_each(futureResults, [&results](auto &futureResults) -> void { results += futureResults.get(); });
+
+        return results;
     }
-    auto scan_directory(const std::vector<std::filesystem::path> &files) -> std::unordered_map<std::string, SCAN_RESULTS> {
-
-        return {};
-    }
-
-    // auto scan_directory(const std::filesystem::path &directory_path)
-    /* flag --scan_dir 'DIR_PATH' -> Generating output.json */
-    // auto scan_directory(const std::filesystem::path &directory_path) -> std::vector<SCAN_RESULTS> {
-    //     using TREADS_CONTAINER = std::vector<std::thread>;
-    //     auto files = support::filesystem_utils::load_from_directory(directory_path);
-
-    // }
-
-    /* flag --scan_from_config 'CONFIG_JSON_PATH' -> Generating output.json */
-    /* flag --system_scan --full/--quick -> Generating output.json */
 } // namespace scanner
