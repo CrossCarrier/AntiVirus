@@ -12,7 +12,7 @@
 #include <unordered_map>
 
 namespace {
-    void save_results_file(nlohmann::json &data, const std::string &path_name, SCAN_RESULTS &&results) {
+    void save_results_file(nlohmann::json &data, const std::string &path_name, const SCAN_RESULTS &results) {
         std::string is_detected = "detected";
         if (results.empty()) {
             is_detected = "detected";
@@ -21,7 +21,7 @@ namespace {
         try {
             data[path_name]["detection status"] = std::move(is_detected);
             data[path_name]["number of detected viruses"] = results.size();
-            data[path_name]["viruses"] = std::move(results);
+            data[path_name]["viruses"] = results;
         } catch (std::exception &ERROR) {
             throw ERROR;
         }
@@ -34,7 +34,6 @@ namespace {
 } // namespace
 
 int main(int argc, char *argv[]) {
-    // index_manager::update_metaindex(INDEX_FILE);
 
     CLI::App app{"Antivirus"};
 
@@ -43,6 +42,7 @@ int main(int argc, char *argv[]) {
     std::string config_file;
     bool quick_scan_flag = false;
     bool system_scan_flag = false;
+    bool update_flag = false;
     int number_of_threads = 4;
 
     app.add_option("--scan_file", file_path, "File scanning");
@@ -51,24 +51,28 @@ int main(int argc, char *argv[]) {
     app.add_option("--set_threads", number_of_threads, "Set number of threads for antivirus");
     app.add_flag("--quick", quick_scan_flag, "Enables quick scans");
     app.add_flag("--system", system_scan_flag, "Scans all files on your system");
+    app.add_flag("--update", update_flag, "Updating metaindex with fresh data");
 
     try {
         app.parse(argc, argv);
 
+        std::unordered_map<std::string, SCAN_RESULTS> scanning_results;
+
         if (!file_path.empty()) {
             nlohmann::json data;
-            save_results_file(data, file_path, scanner::scan_file(std::filesystem::path(file_path)));
-            support::json_utils::write_data("output.json", data);
+            auto results = scanner::scan_file(std::filesystem::path(file_path));
+            scanning_results.insert({file_path, results});
         }
         if (number_of_threads != 4) {
             nlohmann::json thread_info;
             thread_info["Number of threads"] = number_of_threads;
             support::json_utils::write_data("../antivirus/AppData/user_settings.json", thread_info);
         }
+        if (update_flag) {
+            index_manager::update_metaindex(INDEX_FILE);
+        }
 
         if (!quick_scan_flag) {
-            std::unique_ptr<std::unordered_map<std::string, SCAN_RESULTS>> scanning_results;
-
             if (!directory_path.empty()) {
                 try {
                     if (!std::filesystem::exists(directory_path)) {
@@ -78,16 +82,14 @@ int main(int argc, char *argv[]) {
                         throw std::invalid_argument("CUSTOM ERRRO NEEDED THERE!");
                     }
                     auto directory_files = support::filesystem_utils::load_from_directory(std::filesystem::path(directory_path));
-                    scanning_results = std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(
-                        scanner::scanMultipleFiles(directory_files, NUMBER_OF_THREADS));
+                    scanning_results = scanner::scanMultipleFiles(directory_files, NUMBER_OF_THREADS);
                 } catch (std::exception &ERROR) {
                     throw ERROR;
                 }
             }
             if (system_scan_flag) {
                 auto systemFiles = support::filesystem_utils::load_files_from_system();
-                scanning_results = std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(
-                    scanner::scanMultipleFiles(systemFiles, NUMBER_OF_THREADS));
+                scanning_results = scanner::scanMultipleFiles(systemFiles, NUMBER_OF_THREADS);
             }
             // if (!config_file.empty()) {
             //     if (!std::filesystem::exists(config_file)) {
@@ -103,11 +105,10 @@ int main(int argc, char *argv[]) {
             //     }
             // }
 
-            nlohmann::json data;
-
             try {
-                std::ranges::for_each(*scanning_results, [&data](std::pair<std::string, SCAN_RESULTS> &&file_result) -> void {
-                    save_results_file(data, file_result.first, std::move(file_result.second));
+                nlohmann::json data;
+                std::ranges::for_each(scanning_results, [&data](const std::pair<std::string, SCAN_RESULTS> &file_result) -> void {
+                    save_results_file(data, file_result.first, file_result.second);
                 });
                 support::json_utils::write_data("output.json", data);
             } catch (std::exception &ERROR) {

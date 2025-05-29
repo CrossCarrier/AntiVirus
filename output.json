@@ -1,9 +1,19 @@
 {
-    "virus.txt": {
+    "viruses/virus1.txt": {
         "detection status": "detected",
         "number of detected viruses": 2,
         "viruses": [
             "eicar",
+            "domain"
+        ]
+    },
+    "viruses/virus2.txt": {
+        "detection status": "detected",
+        "number of detected viruses": 4,
+        "viruses": [
+            "Insta11Strings",
+            "Insta11",
+            "contains_base64",
             "domain"
         ]
     }
