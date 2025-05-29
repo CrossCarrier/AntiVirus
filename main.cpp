@@ -8,7 +8,6 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
-#include <openssl/bio.h>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -21,8 +20,8 @@ namespace {
 
         try {
             data[path_name]["detection status"] = std::move(is_detected);
-            data[path_name]["viruses"] = results;
             data[path_name]["number of detected viruses"] = results.size();
+            data[path_name]["viruses"] = std::move(results);
         } catch (std::exception &ERROR) {
             throw ERROR;
         }
@@ -35,7 +34,7 @@ namespace {
 } // namespace
 
 int main(int argc, char *argv[]) {
-    index_manager::update_metaindex(INDEX_FILE);
+    // index_manager::update_metaindex(INDEX_FILE);
 
     CLI::App app{"Antivirus"};
 
@@ -80,28 +79,29 @@ int main(int argc, char *argv[]) {
                     }
                     auto directory_files = support::filesystem_utils::load_from_directory(std::filesystem::path(directory_path));
                     scanning_results = std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(
-                        scanner::scanMultipleFiles(directory_files));
+                        scanner::scanMultipleFiles(directory_files, NUMBER_OF_THREADS));
                 } catch (std::exception &ERROR) {
                     throw ERROR;
                 }
             }
             if (system_scan_flag) {
                 auto systemFiles = support::filesystem_utils::load_files_from_system();
-                scanning_results =
-                    std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(scanner::scanMultipleFiles(systemFiles));
+                scanning_results = std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(
+                    scanner::scanMultipleFiles(systemFiles, NUMBER_OF_THREADS));
             }
-            if (!config_file.empty()) {
-                if (!std::filesystem::exists(config_file)) {
-                    throw std::invalid_argument("CUSTOM ERROR NEEDED THERE!");
-                }
-                try {
-                    auto config_files = config_manager::fetch_config_files(std::filesystem::path(config_file));
-                    scanning_results =
-                        std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(scanner::scanMultipleFiles(config_files));
-                } catch (std::exception &ERROR) {
-                    throw ERROR;
-                }
-            }
+            // if (!config_file.empty()) {
+            //     if (!std::filesystem::exists(config_file)) {
+            //         throw std::invalid_argument("CUSTOM ERROR NEEDED THERE!");
+            //     }
+            //     try {
+            //         std::filesystem::path configFile = std::filesystem::path(config_file);
+            //         auto config_files = config_manager::fetch_config_files(configFile);
+            //         scanning_results = std::make_unique<std::unordered_map<std::string, SCAN_RESULTS>>(
+            //             scanner::scanMultipleFiles(config_files, NUMBER_OF_THREADS));
+            //     } catch (std::exception &ERROR) {
+            //         throw ERROR;
+            //     }
+            // }
 
             nlohmann::json data;
 

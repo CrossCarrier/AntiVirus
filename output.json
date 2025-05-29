@@ -1,10 +1,9 @@
 {
     "virus.txt": {
         "detection status": "detected",
-        "number of detected viruses": 3,
+        "number of detected viruses": 2,
         "viruses": [
-            "LinuxBew",
-            "contains_base64",
+            "eicar",
             "domain"
         ]
     }

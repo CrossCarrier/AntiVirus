@@ -70,7 +70,7 @@ namespace support {
     namespace json_utils {
         namespace FILE = std::filesystem;
 
-        auto read_data(FILE::path &&__file) -> nlohmann::json;
+        auto read_data(const FILE::path &__file) -> nlohmann::json;
         auto write_data(const FILE::path &__file, const nlohmann::json &__json) -> void;
         auto write_data(FILE::path &&__file, const nlohmann::json &__json) -> void;
     } // namespace json_utils

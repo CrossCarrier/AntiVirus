@@ -54,11 +54,11 @@ namespace support {
     } // namespace filesystem_utils
 
     namespace json_utils {
-        auto read_data(FILE::path &&__file) -> nlohmann::json {
+        auto read_data(const std::filesystem::path& __file) -> nlohmann::json {
             if (!exists(__file)) {
                 throw PathNotFound(std::string("Cannot read data from file") + __file.c_str());
             }
-            std::ifstream stream(std::move(__file));
+            std::ifstream stream(__file);
             if (!stream) {
                 throw StreamOpeningError(std::string("Failed to open file for reading data. File : ") + __file.c_str());
             }

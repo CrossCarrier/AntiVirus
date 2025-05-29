@@ -1,6 +1,5 @@
 #include "../include/IndexManager.hpp"
 #include "../../HELPERS/include/support.hpp"
-#include "../include/File.hpp"
 #include <algorithm>
 #include <memory>
 
@@ -10,18 +9,18 @@ namespace {
         __json[key] = value;
     }
 
-    auto create_file_entry(const File &file) -> nlohmann::json {
+    auto create_file_entry(const std::filesystem::path &file) -> nlohmann::json {
         nlohmann::json entry;
-        add_property(entry, "Hash", file.get_HashID());
-        add_property(entry, "Modification time", file.get_LastModificationTime());
-        add_property(entry, "Size", file.get_Size());
+        add_property(entry, "Hash", "Example hash");
+        add_property(entry, "Modification time", static_cast<time_t>(2123123));
+        add_property(entry, "Size", static_cast<ssize_t>(12397612));
         return entry;
     }
 
-    template <typename FileContainer>
-    auto update_json_with_files(nlohmann::json &__json, const FileContainer &files) -> void {
-        std::ranges::for_each(
-            files, [&](const File &__val) -> void { __json[__val.get_FilePath().c_str()] = create_file_entry(__val); });
+    auto update_json_with_files(nlohmann::json &__json, const std::vector<std::filesystem::path> &files) -> void {
+        std::ranges::for_each(files, [&](const std::filesystem::path &__val) -> void {
+            __json[__val.c_str()] = create_file_entry(__val);
+        });
     }
 } // namespace
 namespace index_manager {

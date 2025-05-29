@@ -4,13 +4,14 @@
 #include <exception>
 #include <filesystem>
 #include <stdexcept>
+#include "../../HELPERS/include/support.hpp"
 
 namespace config_manager {
 
-    CONFIG_FILES fetch_config_files(std::filesystem::path &&config_file) {
+    CONFIG_FILES fetch_config_files(const std::filesystem::path &config_file) {
         CONFIG_FILES fetched_files;
         try {
-            auto config_data = support::json_utils::read_data(std::move(config_file));
+            auto config_data = support::json_utils::read_data(config_file);
 
             std::vector<std::string> DIRECTORIES = config_data["Directories"];
             std::vector<std::string> FILES = config_data["Files"];
@@ -42,7 +43,7 @@ namespace config_manager {
                         return;
                     }
 
-                    fetched_files.push_back(std::filesystem::path(file_path));
+                    fetched_files.emplace_back(file_path);
                 });
             }
 

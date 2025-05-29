@@ -14,5 +14,6 @@ namespace scanner {
     }
 
     auto scan_file(const std::filesystem::path &file_path) -> SCAN_RESULTS;
-    auto scanMultipleFiles(const std::vector<std::filesystem::path> &files) -> std::unordered_map<std::string, SCAN_RESULTS>;
+    auto scanMultipleFiles(const std::vector<std::filesystem::path> &files, int numberOfThreads)
+        -> std::unordered_map<std::string, SCAN_RESULTS>;
 } // namespace scanner
