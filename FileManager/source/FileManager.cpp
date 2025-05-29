@@ -1,14 +1,14 @@
-#include "../../HELPERS/include/json.hpp"
 #include "../include/HASH-SHA256.hpp"
+#include "../include/FileManager.hpp"
 #include <algorithm>
 #include <chrono>
 #include <exception>
-#include <filesystem>
 #include <memory>
 #include <stdexcept>
 
-namespace {
-    bool validate_file(const std::filesystem::path &_path) {
+namespace filemanager {
+    namespace validate {
+        bool validate_file(const std::filesystem::path &_path) {
         if (!std::filesystem::exists(_path)) {
             return false;
         }
@@ -26,12 +26,10 @@ namespace {
         }
         return true;
     }
-} // namespace
-
-namespace filemanager {
+    }
     namespace file {
         time_t lastModificationTime(const std::filesystem::path &_path) {
-            if (!validate_file(_path))
+            if (!validate::validate_file(_path))
                 throw std::invalid_argument("Cannot load data from your file!");
 
             auto file_modification_time = std::filesystem::last_write_time(_path);
@@ -41,13 +39,13 @@ namespace filemanager {
             return std::chrono::system_clock::to_time_t(converted_system_time);
         }
         ssize_t size(const std::filesystem::path &_path) {
-            if (!validate_file(_path))
+            if (!validate::validate_file(_path))
                 throw std::invalid_argument("Cannot load data from your file!");
 
             return std::filesystem::file_size(_path);
         }
         std::string hash(const std::filesystem::path &_path) {
-            if (!validate_file(_path))
+            if (!validate::validate_file(_path))
                 throw std::invalid_argument("Cannot load data from you file!");
 
             std::string file_hash;
@@ -66,13 +64,10 @@ namespace filemanager {
         }
     } // namespace file
     namespace directory {
-        using PATHS_CONTAINER = std::vector<std::filesystem::path>;
-        using DIRECTORY_ITER_R = std::filesystem::recursive_directory_iterator;
-        using ITER_OPTIONS = std::filesystem::directory_options;
-
         PATHS_CONTAINER loadFiles(const std::filesystem::path &__path) {
-            if (!validate_directory(__path))
+            if (!validate::validate_directory(__path)) {
                 throw std::invalid_argument("Invalid Directory!");
+            }
 
             PATHS_CONTAINER fetched_files;
             DIRECTORY_ITER_R dir_iter(__path, ITER_OPTIONS::skip_permission_denied);
@@ -85,7 +80,7 @@ namespace filemanager {
             return fetched_files;
         }
         PATHS_CONTAINER loadModifiedFiles(const std::filesystem::path &_path, nlohmann::json _indexData) {
-            if (!validate_directory(_path))
+            if (!validate::validate_directory(_path))
                 throw std::invalid_argument("Invalid Directory");
             PATHS_CONTAINER fetched_files;
             try {

@@ -61,6 +61,7 @@ namespace scanner {
     }
     auto scanMultipleFiles(const std::vector<std::filesystem::path> &files, int numberOfThreads)
         -> std::unordered_map<std::string, SCAN_RESULTS> {
+
         auto spliited_vector = support::container_utils::split(files, numberOfThreads);
         std::vector<std::future<std::unordered_map<std::string, SCAN_RESULTS>>> futureResults;
         std::unordered_map<std::string, SCAN_RESULTS> results;
