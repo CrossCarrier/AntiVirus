@@ -2,6 +2,27 @@
 #include "../../HELPERS/include/support.hpp"
 #include "../include/FileManager.hpp"
 #include <algorithm>
+#include <unordered_set>
+
+namespace {
+    const std::unordered_set<std::string> quick_extensions = {
+        ".exe", ".dll", ".com", ".bat", ".cmd", ".msi", ".scr", ".vbs", ".js",
+        ".jse", ".wsf", ".wsh", ".ps1", ".py", ".pyc", ".pyo", ".jar", ".sh",
+        ".zip", ".rar", ".7z", ".tar", ".gz", ".cab", ".doc", ".docx", ".xls",
+        ".xlsx", ".ppt", ".pptx", ".rtf", ".pdf", ".odt", ".sys", ".inf", "autorun.inf"};
+
+    const std::unordered_set<std::string> quick_locations = {
+        "Downloads", "Desktop", "AppData", "Pobrane", "Pulpit",
+        "Temp", "tralaleilotralala", "tmp", "var/tmp", ".cache", ".local/bin"
+    };
+
+    auto isQuickLocation(const std::filesystem::path& filePath) -> bool {
+        for (const auto& part : filePath) {
+            if (quick_locations.contains(part.string())) return true;
+        }
+        return false;
+    }
+} // namespace
 
 namespace {
     template <typename T>
@@ -35,7 +56,9 @@ namespace index_manager {
     }
 
     auto filterModified(const nlohmann::json &data, PATHS_CONTAINER &files) -> void {
-        std::ranges::for_each(files, [&](const std::filesystem::path& filePath) -> void {
+        std::erase_if(files, [&](const std::filesystem::path& filePath) -> bool {
+            if (!quick_extensions.contains(filePath.extension().c_str())) { return true; }
+            if (!isQuickLocation(filePath)) { return true; }
 
             try {
 
@@ -44,18 +67,14 @@ namespace index_manager {
                 auto lastHash = data[filePath.c_str()]["Hash"];
 
                 if (!filemanager::file::isMod(filePath, std::move(lastModTime), std::move(lastSize), std::move(lastSize))) {
-
-                    auto it = std::ranges::find(files, filePath);
-
-                    try {
-                        files.erase(it);
-                    } catch (std::exception& _) {
-                        throw;
-                    }
+                    return true;
                 }
             } catch (std::exception& _) {
                 throw;
+                return false;
             }
+
+            return false;
         });
     }
 } // namespace index_manager
