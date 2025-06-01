@@ -58,7 +58,7 @@ namespace constants {
     {
         "/proc", "/sys", "/dev", "/run",
         "/media", "/mnt",
-        "/snap", "/antivirus"
+        "/snap", "/antivirus",
     };
 
 }

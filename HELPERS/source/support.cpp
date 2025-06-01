@@ -44,9 +44,7 @@ namespace support {
             std::vector<std::unordered_set<std::string>> DirectoriesToBeScanned
             {
                 constants::UserDirectories,
-                constants::TemporaryData,
-                constants::WebDirectories,
-                constants::ExcludeDirectories,
+                constants::ExcludeDirectories
             };
 
             std::ranges::for_each(DirectoriesToBeScanned, [&](const auto& directories) -> void {
@@ -59,13 +57,14 @@ namespace support {
                     try {
                         DIRECTORY_ITER_R recursiveDirectoryIter(directoryName, ITER_OPTIONS::skip_permission_denied, er);
 
-
                         if (er) {
                             return;
                         }
+
                         std::ranges::for_each(recursiveDirectoryIter, [&](const auto& entry) -> void {
 
                             auto pathSTR = entry.path().string();
+                            std::cout << pathSTR << std::endl;
 
                             for (const auto& excluded : constants::ExcludeDirectories) {
                                 if (pathSTR.starts_with(excluded)) return;
@@ -75,7 +74,6 @@ namespace support {
 
                         });
                     } catch (std::filesystem::filesystem_error& _) {
-                        return;
                     }
                 });
             });

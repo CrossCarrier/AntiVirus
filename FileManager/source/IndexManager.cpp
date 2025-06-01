@@ -6,6 +6,7 @@
 #include <iostream>
 #include "../../HELPERS/include/Types.hpp"
 #include "CLI/Validators.hpp"
+#include <iostream>
 
 namespace {
 
@@ -46,7 +47,11 @@ namespace {
 
     auto update_json_with_files(JSON &json, const PATHS_CONTAINER &files) -> void {
         std::ranges::for_each(files, [&](const PATH & val) -> void {
-            json[val.c_str()] = create_file_entry(val);
+            try {
+                json[val.c_str()] = create_file_entry(val);
+            } catch (...) {
+                return;
+            }
         });
     }
 } // namespace
@@ -56,7 +61,11 @@ namespace index_manager {
 
         JSON data;
 
-        update_json_with_files(data, support::filesystem_utils::load_files_from_system());
+        try {
+            update_json_with_files(data, support::filesystem_utils::load_files_from_system());
+        } catch (std::exception& _) {
+            throw;
+        }
 
         support::json_utils::write_data(path, data);
     }
@@ -67,23 +76,42 @@ namespace index_manager {
             // if (!quick_extensions.contains(filePath.extension().c_str())) { return true; }
             // if (!isQuickLocation(filePath)) { return true; }
 
-            auto absPATH = std::filesystem::absolute(filePath);
-            std::cout << "CHECKING FOR MOD : " << absPATH.string() << std::endl;
-
             try {
+                auto absPATH = std::filesystem::absolute(filePath);
+                std::cout << "CHECKING FOR MOD : " << absPATH.string() << std::endl;
 
-                time_t lastModTime = data[absPATH.string()]["Modification time"];
-                ssize_t lastSize = data[absPATH.string()]["Size"];
-                std::string lastHash = data[absPATH.string()]["Hash"];
+                if (data.contains(absPATH.string())) { // Check if the key exists
+                    const auto& file_entry = data[absPATH.string()]; // Now it's safe to access
 
-                if (!filemanager::file::isMod(filePath, lastModTime, lastSize, lastHash)) {
-                    return true;
+                    // Check if sub-keys exist before accessing them too
+                    if (file_entry.contains("Modification time") &&
+                        file_entry.contains("Size") &&
+                        file_entry.contains("Hash")) {
+
+                        time_t lastModTime = file_entry["Modification time"];
+                        ssize_t lastSize = file_entry["Size"];
+                        std::string lastHash = file_entry["Hash"];
+
+                        if (filemanager::file::isMod(filePath, lastModTime, lastSize, lastHash)) {
+                            return false; // Keep the file (it was modified or is new in terms of content)
+                        }
+                    } else {
+                        // Handle missing sub-keys, perhaps treat as modified or log an error
+                        return true; // Or false, depending on desired behavior for incomplete entries
+                    }
+                } else {
+                    // File path not in index, could be a new file, so consider it "modified" or needing scan
+                    return false; // Keep the file
                 }
-            } catch (std::exception& _) {
-                throw;
+
+            } catch (const nlohmann::json::exception& e) { // Catch specific json exceptions
+                // Log the error, e.g., e.what()
+                return true; // Or handle as appropriate
+            } catch (const std::exception& _) { // Broader exceptions
+                return true; // Erase if any other error occurs
             }
 
-            return false;
+            return true; // If not modified, erase it from the list of files to scan
         });
     }
 } // namespace index_manager

@@ -1,8 +1,9 @@
-#include "../include/HASH-SHA256.hpp"
 #include "../include/FileManager.hpp"
+#include "../include/HASH-SHA256.hpp"
 #include <algorithm>
 #include <chrono>
 #include <exception>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 
@@ -26,11 +27,14 @@ namespace filemanager {
             }
             return true;
         }
-    }
+    } // namespace validate
     namespace file {
+
         time_t lastModificationTime(const std::filesystem::path &_path) {
-            if (!validate::validate_file(_path))
+            if (!validate::validate_file(_path)) {
+                std::cout << "PROBLEM with file " << _path.string() << std::endl;
                 throw std::invalid_argument("Cannot load data from your file!");
+            }
 
             auto file_modification_time = std::filesystem::last_write_time(_path);
             const auto system_time = std::chrono::file_clock::to_sys(file_modification_time);
@@ -38,21 +42,27 @@ namespace filemanager {
 
             return std::chrono::system_clock::to_time_t(converted_system_time);
         }
+
         ssize_t size(const std::filesystem::path &_path) {
-            if (!validate::validate_file(_path))
+            if (!validate::validate_file(_path)) {
+                std::cout << "PROBLEM with file " << _path.string() << std::endl;
                 throw std::invalid_argument("Cannot load data from your file!");
+            }
 
             return std::filesystem::file_size(_path);
         }
+
         std::string hash(const std::filesystem::path &_path) {
-            if (!validate::validate_file(_path))
+            if (!validate::validate_file(_path)) {
+                std::cout << "PROBLEM with file " << _path.string() << std::endl;
                 throw std::invalid_argument("Cannot load data from you file!");
+            }
 
             std::string file_hash;
             try {
                 file_hash = hash_SHA256::hash_file(_path);
-            } catch (std::exception &ERROR) {
-                throw ERROR;
+            } catch (std::exception &_) {
+                throw;
             }
 
             return file_hash;
@@ -101,8 +111,8 @@ namespace filemanager {
                         return;
                     }
                 });
-            } catch (std::exception &ERROR) {
-                throw ERROR;
+            } catch (std::exception &_) {
+                throw;
             }
 
             return fetched_files;

@@ -2,6 +2,7 @@
 #include "FileManager/include/IndexManager.hpp"
 #include "HELPERS/include/support.hpp"
 #include "Scanner/include/Scanner.hpp"
+#include "Cleaner/include/Cleaner.hpp"
 #include <CLI/CLI.hpp>
 #include <algorithm>
 #include <exception>
@@ -38,7 +39,7 @@ int main(int argc, char *argv[]) {
     bool quick_scan_flag = false;
     bool system_scan_flag = false;
     bool update_flag = false;
-    bool clear_flag = false;
+    bool clean_flag = false;
     bool show_flag = false;
     int number_of_threads = 4;
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
     app.add_flag("--quick", quick_scan_flag, "Enables quick scans");
     app.add_flag("--system", system_scan_flag, "Scans all files on your system");
     app.add_flag("--update", update_flag, "Updating metaindex with fresh data");
-    app.add_flag("--clear", clear_flag, "Clearing your computer from infected files detected during last scan");
+    app.add_flag("--clear", clean_flag, "Clearing your computer from infected files detected during last scan");
 
     try {
         app.parse(argc, argv);
@@ -98,9 +99,19 @@ int main(int argc, char *argv[]) {
         }
 
         if (quick_scan_flag) {
-            auto filesIndexes = support::json_utils::read_data(INDEX_FILE);
-            index_manager::filterModified(filesIndexes, filesToBeScanned);
+            try {
+                auto filesIndexes = support::json_utils::read_data(INDEX_FILE);
+                index_manager::filterModified(filesIndexes, filesToBeScanned);
+            } catch (...) {
+                std::cerr << "QUICK SCAN FLAG PROBLEM" << std::endl;
+            }
         }
+
+        if (clean_flag) {
+            cleaner::removeInfected("output.json");
+        }
+
+
 
         JSON OUTPUT;
 
