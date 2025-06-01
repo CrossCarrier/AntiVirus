@@ -9,23 +9,23 @@
 namespace filemanager {
     namespace validate {
         bool validate_file(const std::filesystem::path &_path) {
-        if (!std::filesystem::exists(_path)) {
-            return false;
+            if (!std::filesystem::exists(_path)) {
+                return false;
+            }
+            if (!std::filesystem::is_regular_file(_path)) {
+                return false;
+            }
+            return true;
         }
-        if (!std::filesystem::is_regular_file(_path)) {
-            return false;
+        bool validate_directory(const std::filesystem::path &_dir_path) {
+            if (!std::filesystem::exists(_dir_path)) {
+                return false;
+            }
+            if (!std::filesystem::is_directory(_dir_path)) {
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
-    bool validate_directory(const std::filesystem::path &_dir_path) {
-        if (!std::filesystem::exists(_dir_path)) {
-            return false;
-        }
-        if (!std::filesystem::is_directory(_dir_path)) {
-            return false;
-        }
-        return true;
-    }
     }
     namespace file {
         time_t lastModificationTime(const std::filesystem::path &_path) {
@@ -64,17 +64,17 @@ namespace filemanager {
         }
     } // namespace file
     namespace directory {
-        PATHS_CONTAINER loadFiles(const std::filesystem::path &__path) {
-            if (!validate::validate_directory(__path)) {
+        PATHS_CONTAINER loadFiles(const std::filesystem::path &path) {
+            if (!validate::validate_directory(path)) {
                 throw std::invalid_argument("Invalid Directory!");
             }
 
             PATHS_CONTAINER fetched_files;
-            DIRECTORY_ITER_R dir_iter(__path, ITER_OPTIONS::skip_permission_denied);
+            DIRECTORY_ITER_R dir_iter(path, ITER_OPTIONS::skip_permission_denied);
 
-            std::ranges::for_each(dir_iter, [&](const auto &__entry) -> void {
-                if (validate_file(__entry)) {
-                    fetched_files.push_back(__entry);
+            std::ranges::for_each(dir_iter, [&](const auto &entry) -> void {
+                if (validate::validate_file(entry)) {
+                    fetched_files.push_back(entry);
                 }
             });
             return fetched_files;

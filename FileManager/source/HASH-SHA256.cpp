@@ -4,6 +4,9 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+
 #define EVP_MAX_SIZE 32
 #define READING_BUFFOR 2048
 

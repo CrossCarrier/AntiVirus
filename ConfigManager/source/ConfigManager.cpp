@@ -1,10 +1,9 @@
 #include "../include/ConfigManager.hpp"
-#include "support.hpp"
+#include "../../HELPERS/include/support.hpp"
 #include <algorithm>
 #include <exception>
 #include <filesystem>
 #include <stdexcept>
-#include "../../HELPERS/include/support.hpp"
 
 namespace config_manager {
 

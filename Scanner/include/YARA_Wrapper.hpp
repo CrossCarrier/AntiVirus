@@ -1,4 +1,5 @@
 #pragma once
+
 #include <yara/arena.h>
 #include <yara/compiler.h>
 #include <yara/error.h>
@@ -7,13 +8,13 @@
 #include <yara/scan.h>
 #include <yara/types.h>
 
-#include <filesystem>
 
-class YARA_Wrapper {
-private:
-    static auto YARA_CALLBACK_FUNCTION(YR_SCAN_CONTEXT *context, int message, void *message_data, void *user_data) -> int;
+#include "../../HELPERS/include/Types.hpp"
 
-public:
-    static auto YARA_SCAN(const std::filesystem::path &_file, const std::filesystem::path &_rules_config_file,
-                          const void *_results) -> void;
-};
+using namespace types::filesystem_types;
+
+namespace yara_wrapper {
+
+    auto YARA_SCAN(const PATH &file , const PATH& rules_config_file, const void* results) -> void;
+
+}

@@ -1,12 +1,14 @@
 #pragma once
-#include <filesystem>
-#include <vector>
-#include "../../HELPERS/include/json.hpp"
+
+#include "../../HELPERS/include/Types.hpp"
+
+using namespace types::json;
+using namespace types::filesystem_types;
 
 namespace index_manager {
-    namespace FILE = std::filesystem;
-    using PATHS_CONTAINER = std::vector<std::filesystem::path>;
 
-    auto update_metaindex(FILE::path &&path) -> void;
-    auto filterModified(const nlohmann::json& data , PATHS_CONTAINER& files) -> void;
+    auto update_metaindex(PATH &&path) -> void;
+
+    auto filterModified(const JSON& data , PATHS_CONTAINER& files) -> void;
+
 } // namespace index_manager
