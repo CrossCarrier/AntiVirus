@@ -61,7 +61,7 @@ namespace support {
         using DIRECTORY_ITER_R = FILE::recursive_directory_iterator;
         using DIRECTORY_ITER = FILE::directory_iterator;
         using ITER_OPTIONS = FILE::directory_options;
-        using FILES_PACK = std::vector<File>;
+        using FILES_PACK = std::vector<file>;
 
         auto load_from_directory(const FILE::path &__path) -> PATHS_CONTAINER;
         auto load_files_from_system() -> PATHS_CONTAINER;

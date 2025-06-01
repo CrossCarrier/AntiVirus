@@ -2,6 +2,7 @@
 #include "FileManager/include/IndexManager.hpp"
 #include "HELPERS/include/support.hpp"
 #include "Scanner/include/Scanner.hpp"
+#include "Cleaner/include/Cleaner.hpp"
 #include <CLI/CLI.hpp>
 #include <algorithm>
 #include <exception>
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
     bool quick_scan_flag = false;
     bool system_scan_flag = false;
     bool update_flag = false;
-    bool clear_flag = false;
+    bool clean_flag = false;
     int number_of_threads = 4;
 
     app.add_option("--scan_file", file_path, "File scanning");
@@ -46,7 +47,7 @@ int main(int argc, char *argv[]) {
     app.add_flag("--quick", quick_scan_flag, "Enables quick scans");
     app.add_flag("--system", system_scan_flag, "Scans all files on your system");
     app.add_flag("--update", update_flag, "Updating metaindex with fresh data");
-    app.add_flag("--clear", clear_flag, "Clearing your computer from infected files detected during last scan");
+    app.add_flag("--clean", clean_flag, "Clearing your computer from infected files detected during last scan");
 
     try {
         app.parse(argc, argv);
@@ -109,6 +110,10 @@ int main(int argc, char *argv[]) {
         });
 
         support::json_utils::write_data("output.json", OUTPUT);
+
+        if (clean_flag) {
+            cleaner::removeInfected("output.json");
+        }
 
     } catch (const CLI::ParseError &error) {
         return app.exit(error);

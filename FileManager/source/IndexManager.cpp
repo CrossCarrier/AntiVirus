@@ -12,7 +12,7 @@ namespace {
         ".xlsx", ".ppt", ".pptx", ".rtf", ".pdf", ".odt", ".sys", ".inf", "autorun.inf"};
 
     const std::unordered_set<std::string> quick_locations = {
-        "Downloads", "Desktop", "AppData", "Pobrane", "Pulpit",
+        "viruses","Downloads", "Desktop", "AppData", "Pobrane", "Pulpit",
         "Temp", "tralaleilotralala", "tmp", "var/tmp", ".cache", ".local/bin"
     };
 
@@ -57,7 +57,7 @@ namespace index_manager {
 
     auto filterModified(const nlohmann::json &data, PATHS_CONTAINER &files) -> void {
         std::erase_if(files, [&](const std::filesystem::path& filePath) -> bool {
-            if (!quick_extensions.contains(filePath.extension().c_str())) { return true; }
+            if (!quick_extensions.contains(filePath.extension().string())) { return true; }
             if (!isQuickLocation(filePath)) { return true; }
 
             try {
@@ -71,7 +71,6 @@ namespace index_manager {
                 }
             } catch (std::exception& _) {
                 throw;
-                return false;
             }
 
             return false;
