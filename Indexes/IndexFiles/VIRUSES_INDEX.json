@@ -1,0 +1,17 @@
+{
+    "/home/tralaleilotralala/VIRUSES/virus1.txt": {
+        "Hash": "131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267",
+        "Modification time": 1748867153,
+        "Size": 69
+    },
+    "/home/tralaleilotralala/VIRUSES/virus123.txt": {
+        "Hash": "2474b8f6140b442f425c7af94edf636fd06ba54397ec2b07e5c13ed292e6e947",
+        "Modification time": 1748874594,
+        "Size": 94
+    },
+    "/home/tralaleilotralala/VIRUSES/virus2.txt": {
+        "Hash": "1408584a186c846255e59f3c2773344207bf2ca0e5c2171e88f7dae4995da70d",
+        "Modification time": 1748867163,
+        "Size": 70
+    }
+}

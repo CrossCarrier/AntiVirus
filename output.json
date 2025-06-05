@@ -1,5 +1,5 @@
 {
-    "viruses/virus1.txt": {
+    "/home/tralaleilotralala/VIRUSES/virus1.txt": {
         "detection status": "detected",
         "number of detected viruses": 2,
         "viruses": [
@@ -7,13 +7,10 @@
             "domain"
         ]
     },
-    "viruses/virus2.txt": {
+    "/home/tralaleilotralala/VIRUSES/virus2.txt": {
         "detection status": "detected",
-        "number of detected viruses": 4,
+        "number of detected viruses": 1,
         "viruses": [
-            "Insta11Strings",
-            "Insta11",
-            "contains_base64",
             "domain"
         ]
     }

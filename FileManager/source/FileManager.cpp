@@ -8,8 +8,10 @@
 #include <stdexcept>
 
 namespace filemanager {
+
     namespace validate {
-        bool validate_file(const std::filesystem::path &_path) {
+
+        auto validate_file(const std::filesystem::path &_path) -> bool {
             if (!std::filesystem::exists(_path)) {
                 return false;
             }
@@ -18,7 +20,8 @@ namespace filemanager {
             }
             return true;
         }
-        bool validate_directory(const std::filesystem::path &_dir_path) {
+
+        auto validate_directory(const std::filesystem::path &_dir_path) -> bool {
             if (!std::filesystem::exists(_dir_path)) {
                 return false;
             }
@@ -27,7 +30,8 @@ namespace filemanager {
             }
             return true;
         }
-    } // namespace validate
+    }
+
     namespace file {
 
         time_t lastModificationTime(const std::filesystem::path &_path) {
@@ -73,7 +77,9 @@ namespace filemanager {
             return (_prev_mod != lastModificationTime(_path) && _prev_size != size(_path) && _prev_hash != hash(_path));
         }
     } // namespace file
+
     namespace directory {
+
         PATHS_CONTAINER loadFiles(const std::filesystem::path &path) {
             if (!validate::validate_directory(path)) {
                 throw std::invalid_argument("Invalid Directory!");
@@ -89,6 +95,7 @@ namespace filemanager {
             });
             return fetched_files;
         }
+
         PATHS_CONTAINER loadModifiedFiles(const std::filesystem::path &_path, nlohmann::json _indexData) {
             if (!validate::validate_directory(_path))
                 throw std::invalid_argument("Invalid Directory");

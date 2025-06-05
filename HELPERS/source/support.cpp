@@ -43,8 +43,7 @@ namespace support {
 
             std::vector<std::unordered_set<std::string>> DirectoriesToBeScanned
             {
-                constants::UserDirectories,
-                constants::ExcludeDirectories
+                constants::UserDirectories
             };
 
             std::ranges::for_each(DirectoriesToBeScanned, [&](const auto& directories) -> void {
@@ -64,7 +63,6 @@ namespace support {
                         std::ranges::for_each(recursiveDirectoryIter, [&](const auto& entry) -> void {
 
                             auto pathSTR = entry.path().string();
-                            std::cout << pathSTR << std::endl;
 
                             for (const auto& excluded : constants::ExcludeDirectories) {
                                 if (pathSTR.starts_with(excluded)) return;

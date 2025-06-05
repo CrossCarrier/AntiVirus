@@ -7,7 +7,8 @@ using namespace types::filesystem_types;
 
 namespace index_manager {
 
-    auto update_metaindex(PATH &&path) -> void;
+    auto createMetaIndex(const std::string& inputPath, const std::string& nameOutputPath) -> void;
+    auto updateMetaIndex(const std::string& inputPath) -> void;
 
     auto filterModified(const JSON& data , PATHS_CONTAINER& files) -> void;
 

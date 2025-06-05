@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <stdexcept>
 #include <string>
 
 class BasicErrorBuild : public std::exception {
@@ -8,6 +9,7 @@ protected:
     std::string error_message;
 
 public:
+    BasicErrorBuild() = default;
     explicit BasicErrorBuild(std::string &&message);
 
     [[nodiscard]] auto what() const noexcept -> const char * override;
@@ -41,4 +43,17 @@ public:
 class StreamOpeningError : public BasicErrorBuild {
 public:
     using BasicErrorBuild::BasicErrorBuild;
+};
+
+class ReadingSettingsError : public BasicErrorBuild {
+public:
+    ReadingSettingsError();
+};
+class OverwritingOtherFileError : public BasicErrorBuild {
+public:
+    OverwritingOtherFileError();
+};
+class MetaIndexDoNotExists : public BasicErrorBuild {
+public:
+    MetaIndexDoNotExists();
 };
