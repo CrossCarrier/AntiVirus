@@ -62,10 +62,7 @@ namespace yara_wrapper {
             return;
         }
 
-        result = yr_rules_scan_file(rules, file.c_str(), SCAN_FLAGS_FAST_MODE, YARA_CALLBACK_FUNCTION, const_cast<void *>(results), 0);
-        if (result != ERROR_SUCCESS) {
-            std::cout << "Failed to scan file: " << file.c_str() << std::endl;
-        }
+        yr_rules_scan_file(rules, file.c_str(), SCAN_FLAGS_FAST_MODE, YARA_CALLBACK_FUNCTION, const_cast<void *>(results), 0);
 
         yr_rules_destroy(rules);
         yr_compiler_destroy(compiler);

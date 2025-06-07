@@ -7,8 +7,10 @@
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 
-#define EVP_MAX_SIZE 32
-#define READING_BUFFOR 2048
+namespace {
+    constexpr int EVP_MAX_SIZE = 32;
+    constexpr int READING_BUFFER = 2048;
+}
 
 namespace hash_SHA256 {
     auto hash_file(const std::filesystem::path &file_path) -> std::string {
@@ -21,17 +23,17 @@ namespace hash_SHA256 {
         auto m_HashingAlgorithm = EVP_get_digestbyname("sha256");
         unsigned char l_HashedFile[EVP_MAX_SIZE];
 
-        EVP_DigestInit_ex(m_Context, m_HashingAlgorithm, NULL);
+        EVP_DigestInit_ex(m_Context, m_HashingAlgorithm, nullptr);
 
-        char l_Data[READING_BUFFOR];
+        char l_Data[READING_BUFFER];
         while (file) {
-            file.read(l_Data, READING_BUFFOR);
+            file.read(l_Data, READING_BUFFER);
             if (file.gcount() > 0) {
                 EVP_DigestUpdate(m_Context, l_Data, file.gcount());
             }
         }
 
-        EVP_DigestFinal_ex(m_Context, l_HashedFile, NULL);
+        EVP_DigestFinal_ex(m_Context, l_HashedFile, nullptr);
 
         std::stringstream ss;
         for (const auto &byte : l_HashedFile) {

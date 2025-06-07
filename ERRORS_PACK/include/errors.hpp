@@ -13,47 +13,86 @@ public:
     explicit BasicErrorBuild(std::string &&message);
 
     [[nodiscard]] auto what() const noexcept -> const char * override;
+    [[nodiscard]] virtual auto getTips() const noexcept -> std::string = 0;
 };
 
-class InvalidContainerSize : public BasicErrorBuild {
+class FilesystemOperationError final : std::exception {
 public:
-    using BasicErrorBuild::BasicErrorBuild;
+    explicit FilesystemOperationError(std::string&& error_message);
 };
 
-class FullContainer : public BasicErrorBuild {
+class StreamOpeningError final : public BasicErrorBuild {
 public:
-    using BasicErrorBuild::BasicErrorBuild;
+    StreamOpeningError();
+    [[nodiscard]]auto getTips() const noexcept -> std::string override;
 };
-
-class EmptyContainer : public BasicErrorBuild {
+class PathNotFound final : public BasicErrorBuild {
 public:
-    using BasicErrorBuild::BasicErrorBuild;
+    [[nodiscard]]auto getTips() const noexcept -> std::string override;
+    explicit PathNotFound(std::string&& filePath);
 };
-
-class InvalidIndex : public BasicErrorBuild {
+class ReadingSettingsError final : public BasicErrorBuild {
 public:
-    using BasicErrorBuild::BasicErrorBuild;
+    [[nodiscard]]auto getTips() const noexcept -> std::string override;
+    explicit ReadingSettingsError(std::string&& problemDescriptor);
 };
-
-class PathNotFound : public BasicErrorBuild {
+class OverwritingOtherFileError final : public BasicErrorBuild {
 public:
-    using BasicErrorBuild::BasicErrorBuild;
-};
-
-class StreamOpeningError : public BasicErrorBuild {
-public:
-    using BasicErrorBuild::BasicErrorBuild;
-};
-
-class ReadingSettingsError : public BasicErrorBuild {
-public:
-    ReadingSettingsError();
-};
-class OverwritingOtherFileError : public BasicErrorBuild {
-public:
+    [[nodiscard]]auto getTips() const noexcept -> std::string override;
     OverwritingOtherFileError();
 };
-class MetaIndexDoNotExists : public BasicErrorBuild {
+class MetaIndexDoNotExists final : public BasicErrorBuild {
 public:
+    [[nodiscard]]auto getTips() const noexcept -> std::string override;
     MetaIndexDoNotExists();
+};
+class DirectoryValidationError final : public BasicErrorBuild {
+public:
+    [[nodiscard]]auto getTips() const noexcept -> std::string override;
+    explicit DirectoryValidationError(const std::string& dirPath);
+};
+class FileValidationError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit FileValidationError(std::string&& filePath);
+};
+class ConfigFileStructureError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit ConfigFileStructureError(std::string&& fieldOption);
+};
+class MovingIndexStorageError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit MovingIndexStorageError(const std::string& providedAction);
+};
+class DirectoryCreationError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit DirectoryCreationError(std::string&& directoryPath);
+};
+class InvalidNumbersOfThreadsError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit InvalidNumbersOfThreadsError(int providedNumberOfThreads);
+};
+class RemovingDirectoryContentError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit RemovingDirectoryContentError(std::string&& directoryToBeRemoved);
+};
+class InvalidJsonFileFormatError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    InvalidJsonFileFormatError();
+};
+class UpdatingUserSettingsError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit UpdatingUserSettingsError(std::string&& problemDescriptor);
+};
+class InvalidFileIndex final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit InvalidFileIndex(const std::string& invalidFile);
 };

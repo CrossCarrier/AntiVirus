@@ -43,7 +43,11 @@ namespace support {
 
             std::vector<std::unordered_set<std::string>> DirectoriesToBeScanned
             {
-                constants::UserDirectories
+                constants::UserDirectories,
+                constants::AutoStartLocations,
+                constants::CriticalSystemLocalisation,
+                constants::TemporaryData,
+                constants::WebDirectories,
             };
 
             std::ranges::for_each(DirectoriesToBeScanned, [&](const auto& directories) -> void {
@@ -83,11 +87,12 @@ namespace support {
     namespace json_utils {
         auto read_data(const std::filesystem::path& file) -> nlohmann::json {
             if (!exists(file)) {
-                throw PathNotFound(std::string("Cannot read data from file") + file.string());
+                throw PathNotFound(file.string());
             }
             std::ifstream stream(file);
             if (!stream) {
-                throw StreamOpeningError(std::string("Failed to open file for reading data. File : ") + file.string());
+
+                throw StreamOpeningError();
             }
             nlohmann::json json;
             stream >> json;
@@ -98,7 +103,7 @@ namespace support {
         auto write_data(const PATH &file, const JSON &json) -> void {
             std::ofstream stream(file.string());
             if (!stream) {
-                throw StreamOpeningError(std::string("Failed to open file for writing data. File : ") + file.c_str());
+                throw StreamOpeningError();
             }
             stream << json.dump(4);
         }
@@ -106,7 +111,7 @@ namespace support {
         auto write_data(PATH &&file, const JSON &json) -> void {
             std::ofstream stream(file.string());
             if (!stream) {
-                throw StreamOpeningError(std::string("Failed to open file for writing data. File : ") + file.c_str());
+                throw StreamOpeningError();
             }
             stream << json.dump(4);
         }

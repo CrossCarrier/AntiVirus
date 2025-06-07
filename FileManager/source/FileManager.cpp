@@ -80,13 +80,13 @@ namespace filemanager {
 
     namespace directory {
 
-        PATHS_CONTAINER loadFiles(const std::filesystem::path &path) {
+        CTF::PATHS_CONTAINER loadFiles(const std::filesystem::path &path) {
             if (!validate::validate_directory(path)) {
                 throw std::invalid_argument("Invalid Directory!");
             }
 
-            PATHS_CONTAINER fetched_files;
-            DIRECTORY_ITER_R dir_iter(path, ITER_OPTIONS::skip_permission_denied);
+            CTF::PATHS_CONTAINER fetched_files;
+            CTF::DIRECTORY_ITER_R dir_iter(path, CTF::ITER_OPTIONS::skip_permission_denied);
 
             std::ranges::for_each(dir_iter, [&](const auto &entry) -> void {
                 if (validate::validate_file(entry)) {
@@ -96,10 +96,10 @@ namespace filemanager {
             return fetched_files;
         }
 
-        PATHS_CONTAINER loadModifiedFiles(const std::filesystem::path &_path, nlohmann::json _indexData) {
+        CTF::PATHS_CONTAINER loadModifiedFiles(const std::filesystem::path &_path, nlohmann::json _indexData) {
             if (!validate::validate_directory(_path))
                 throw std::invalid_argument("Invalid Directory");
-            PATHS_CONTAINER fetched_files;
+            CTF::PATHS_CONTAINER fetched_files;
             try {
                 fetched_files = loadFiles(_path);
             } catch (std::exception &ERROR) {

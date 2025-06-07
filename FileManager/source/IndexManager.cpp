@@ -2,28 +2,14 @@
 #include "../../ERRORS_PACK/include/errors.hpp"
 #include "../../HELPERS/include/Types.hpp"
 #include "../../HELPERS/include/support.hpp"
+#include "../../HELPERS/include/ThreadPool.hpp"
 #include "../include/FileManager.hpp"
+#include "../../ConfigManager/include/ConfigManager.hpp"
 #include "CLI/Validators.hpp"
 #include <algorithm>
 #include <iostream>
-#include <unordered_set>
-
-namespace {
-
-    const std::unordered_set<std::string> quick_extensions = {
-        ".exe", ".dll",  ".com", ".bat",  ".cmd", ".msi",  ".scr", ".vbs", ".js",  ".jse", ".wsf", ".wsh",
-        ".ps1", ".py",   ".pyc", ".pyo",  ".jar", ".sh",   ".zip", ".rar", ".7z",  ".tar", ".gz",  ".cab",
-        ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".rtf", ".pdf", ".odt", ".sys", ".inf", "autorun.inf"};
-
-    const std::unordered_set<std::string> quick_locations = {"Downloads", "Desktop", "AppData",           "Pobrane",
-                                                             "Pulpit",    "Temp",    "tralaleilotralala", "tmp",
-                                                             "var/tmp",   ".cache",  ".local/bin"};
-
-    auto isQuickLocation(const PATH &filePath) -> bool {
-        return std::ranges::any_of(filePath, [&](const auto &part) -> bool { return (quick_locations.contains(part.string())); });
-    }
-
-} // namespace
+#include <vector>
+#include <future>
 
 namespace {
     template <typename T>
@@ -53,7 +39,9 @@ namespace {
 
 namespace {
 
-    constexpr const char *LEGEND_FILE = "../antivirus/Indexes/Legend.json";
+    const auto INDEX_STORAGE_PATH = config_manager::get_index_storage_path();
+    const auto LEGEND_INDEX_FILE = INDEX_STORAGE_PATH + "/Legend.json";
+    const auto NUMBER_OF_THREADS = config_manager::get_number_of_threads();
 
 } // namespace
 namespace index_manager {
@@ -65,22 +53,19 @@ namespace index_manager {
             throw OverwritingOtherFileError();
         }
 
-        JSON filesIndexLegend = support::json_utils::read_data(LEGEND_FILE);
+        JSON filesIndexLegend = support::json_utils::read_data(LEGEND_INDEX_FILE);
         auto ABSDirPath = std::filesystem::absolute(std::filesystem::path(inputPath));
 
         if (filesIndexLegend.contains(ABSDirPath)) {
             std::cerr << "MetaIndex for this directory already exists" << std::endl;
-            std::cout << "Data about files from this directory are storaged in : "
-                      << support::json_utils::read_data(LEGEND_FILE)[inputPath] << "\n";
+            std::cout << "Data about files from this directory are stored in : "
+                      << support::json_utils::read_data(LEGEND_INDEX_FILE)[inputPath].get<std::string>() << "\n";
             return;
         }
 
-        /* inputPath - Directory path, which is going to be indexed */
-        /* nameOutputPath - Name of the path where indexes of specific directory will be stored */
-
         std::string indexFileName = std::move(const_cast<std::string &>(nameOutputPath)) + ".json";
 
-        indexFileName = "../antivirus/Indexes/IndexFiles/" + indexFileName;
+        indexFileName = INDEX_STORAGE_PATH + "/IndexFiles/" + indexFileName;
         JSON indexJsonData;
 
         if (inputPath != "system") {
@@ -92,13 +77,18 @@ namespace index_manager {
             filesIndexLegend["SYSTEM"] = indexFileName;
         }
 
-        support::json_utils::write_data(LEGEND_FILE, filesIndexLegend);
-        support::json_utils::write_data(indexFileName, indexJsonData);
+        try {
+            support::json_utils::write_data(LEGEND_INDEX_FILE, filesIndexLegend);
+            support::json_utils::write_data(indexFileName, indexJsonData);
+        } catch (std::exception& ERROR) {
+            // Logging error logic
+            throw;
+        }
     }
 
     auto updateMetaIndex(const std::string &inputPath) -> void {
 
-        JSON filesIndexLegend = support::json_utils::read_data(LEGEND_FILE);
+        JSON filesIndexLegend = support::json_utils::read_data(LEGEND_INDEX_FILE);
 
         if (!filesIndexLegend.contains(inputPath)) {
             std::cerr << "Wanted MetaIndex do not exists\n";
@@ -117,45 +107,128 @@ namespace index_manager {
         support::json_utils::write_data(foundIndexPath, updatedIndex);
     }
 
-    auto filterModified(const JSON &data, PATHS_CONTAINER &files) -> void {
-        std::erase_if(files, [&](const PATH &filePath) -> bool {
-            // if (!quick_extensions.contains(filePath.extension().c_str())) { return true; }
-            // if (!isQuickLocation(filePath)) { return true; }
+    auto filterModified(PATHS_CONTAINER &files_input_ref) -> PATHS_CONTAINER {
+        if (!filemanager::validate::validate_directory(INDEX_STORAGE_PATH)) {
+            std::cerr << "Error: Index storage path is not a valid directory: " << INDEX_STORAGE_PATH << std::endl;
+            throw DirectoryValidationError(INDEX_STORAGE_PATH);
+        }
 
-            try {
-                auto absPATH = std::filesystem::absolute(filePath);
-                std::cout << "CHECKING FOR MOD : " << absPATH.string() << std::endl;
+        if (files_input_ref.empty()) {
+            return {};
+        }
 
-                if (data.contains(absPATH.string())) {               // Check if the key exists
-                    const auto &file_entry = data[absPATH.string()]; // Now it's safe to access
+        JSON SystemIndexData;
+        bool systemIndexLoadedSuccessfully = false;
 
-                    // Check if sub-keys exist before accessing them too
-                    if (file_entry.contains("Modification time") && file_entry.contains("Size") && file_entry.contains("Hash")) {
-
-                        time_t lastModTime = file_entry["Modification time"];
-                        ssize_t lastSize = file_entry["Size"];
-                        std::string lastHash = file_entry["Hash"];
-
-                        if (filemanager::file::isMod(filePath, lastModTime, lastSize, lastHash)) {
-                            return false; // Keep the file (it was modified or is new in terms of content)
+        try {
+            if (std::filesystem::exists(LEGEND_INDEX_FILE)) {
+                JSON indexJsonLegend = support::json_utils::read_data(LEGEND_INDEX_FILE);
+                if (indexJsonLegend.contains("SYSTEM") && indexJsonLegend["SYSTEM"].is_string()) {
+                    std::string systemIndexPathStr = indexJsonLegend["SYSTEM"].get<std::string>();
+                    if (!systemIndexPathStr.empty() && std::filesystem::exists(systemIndexPathStr)) {
+                        SystemIndexData = support::json_utils::read_data(std::filesystem::path(systemIndexPathStr));
+                        if (!SystemIndexData.empty()) {
+                             systemIndexLoadedSuccessfully = true;
+                        } else {
+                            std::cerr << "Warning: SYSTEM index file at " << systemIndexPathStr << " is empty. All files will be treated as new/modified." << std::endl;
                         }
                     } else {
-                        // Handle missing sub-keys, perhaps treat as modified or log an error
-                        return true; // Or false, depending on desired behavior for incomplete entries
+                        std::cerr << "Warning: SYSTEM index path '" << systemIndexPathStr << "' is invalid or file does not exist. Cannot filter." << std::endl;
                     }
                 } else {
-                    // File path not in index, could be a new file, so consider it "modified" or needing scan
-                    return false; // Keep the file
+                    std::cerr << "Warning: 'SYSTEM' entry not found or not a string in Legend.json. Cannot filter using SYSTEM index." << std::endl;
                 }
+            } else {
+                std::cerr << "Warning: Index Legend file does not exist at " << LEGEND_INDEX_FILE
+                          << ". Cannot filter using SYSTEM index." << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error during SYSTEM index data loading: " << e.what()
+                      << ". All files will be treated as new/modified." << std::endl;
+        }
 
-            } catch (const nlohmann::json::exception &e) { // Catch specific json exceptions
-                // Log the error, e.g., e.what()
-                return true;                    // Or handle as appropriate
-            } catch (const std::exception &_) { // Broader exceptions
-                return true;                    // Erase if any other error occurs
+        if (!systemIndexLoadedSuccessfully) {
+            std::cerr << "SYSTEM index could not be loaded or is empty. All input files will be kept." << std::endl;
+            return files_input_ref;
+        }
+
+        ThreadPool threadPool(NUMBER_OF_THREADS);
+        std::vector<std::future<bool>> taskFutures;
+        taskFutures.reserve(files_input_ref.size());
+
+        std::mutex system_index_data_mutex;
+
+        // Task returns:
+        // true  -> REMOVE file (confirmed NOT modified)
+        // false -> KEEP file (IS modified, new, or error occurred during check)
+        auto check_file_task =
+            [&SystemIndexData, &system_index_data_mutex](const PATH &filePath) -> bool {
+            try {
+                auto absPATH_str = std::filesystem::absolute(filePath).string();
+                std::lock_guard<std::mutex> lock(system_index_data_mutex);
+
+                if (SystemIndexData.contains(absPATH_str)) {
+                    const auto &file_entry = SystemIndexData.at(absPATH_str);
+
+                    if (file_entry.contains("Modification time") && file_entry.contains("Size") && file_entry.contains("Hash")) {
+
+                        auto lastModTime = file_entry["Modification time"].get<time_t>();
+                        auto lastSize = file_entry["Size"].get<ssize_t>();
+                        auto lastHash = file_entry["Hash"].get<std::string>();
+
+                        if (filemanager::file::isMod(filePath, lastModTime, lastSize, lastHash)) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    } else {
+                        std::cerr << "Warning: Malformed index entry for " << absPATH_str << " (missing fields). Keeping file." << std::endl;
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } catch (const nlohmann::json::exception &e) {
+                std::cerr << "Warning: JSON exception for " << filePath.string() << " against SYSTEM index: " << e.what() << ". Keeping file." << std::endl;
+                return false;
+            } catch (const std::filesystem::filesystem_error& efs) {
+                std::cerr << "Warning: Filesystem error for " << filePath.string() << " (e.g. std::filesystem::absolute): " << efs.what() << ". Keeping file." << std::endl;
+                return false;
+            } catch (const std::exception &e) {
+                std::cerr << "Warning: Standard exception for " << filePath.string() << " against SYSTEM index: " << e.what() << ". Keeping file." << std::endl;
+                return false;
+            } catch (...) {
+                std::cerr << "Warning: Unknown exception for " << filePath.string() << " against SYSTEM index. Keeping file." << std::endl;
+                return false;
+            }
+        };
+
+        for (const auto& filePath : files_input_ref) {
+            taskFutures.emplace_back(threadPool.addTask(check_file_task, filePath));
+        }
+
+        PATHS_CONTAINER filesToKeep;
+        filesToKeep.reserve(files_input_ref.size());
+
+        for (size_t i = 0; i < taskFutures.size(); ++i) {
+            bool should_remove = true;
+            try {
+                should_remove = taskFutures.at(i).get();
+            } catch (const std::exception& e) {
+                std::cerr << "Exception from task future for file "
+                          << (i < files_input_ref.size() ? files_input_ref.at(i).string() : "unknown_file_due_to_index_mismatch")
+                          << ": " << e.what() << ". Keeping file." << std::endl;
+                should_remove = false;
             }
 
-            return true; // If not modified, erase it from the list of files to scan
-        });
+            if (!should_remove) {
+                 if (i < files_input_ref.size()) {
+                    filesToKeep.push_back(files_input_ref.at(i));
+                } else {
+                    std::cerr << "Error: Index mismatch between task futures and input files. Cannot keep file for future at index " << i << std::endl;
+                }
+            }
+        }
+        return filesToKeep;
     }
 } // namespace index_manager
