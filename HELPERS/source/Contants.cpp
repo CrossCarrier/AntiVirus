@@ -43,15 +43,12 @@ namespace constants {
         "/etc/systemd/system",
         "/etc/systemd/user",
         "/etc/xdg/autostart",
-        "/usr/share/applications",
     };
 
     const std::unordered_set<std::string> WebDirectories
     {
         "/var/www",
         "/srv",
-        "/usr/share/nginx",
-        "/usr/share/apache2",
     };
 
     const std::unordered_set<std::string> ExcludeDirectories

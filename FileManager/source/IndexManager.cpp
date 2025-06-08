@@ -98,7 +98,7 @@ namespace index_manager {
         auto foundIndexPath = std::move(filesIndexLegend[inputPath]);
         JSON updatedIndex;
 
-        if (inputPath != "system") {
+        if (inputPath != "SYSTEM") {
             update_json_with_files(updatedIndex, support::filesystem_utils::load_from_directory(inputPath));
         } else {
             update_json_with_files(updatedIndex, support::filesystem_utils::load_files_from_system());

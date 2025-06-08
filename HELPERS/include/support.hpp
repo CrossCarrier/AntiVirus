@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "Types.hpp"
 
 using namespace types::filesystem_types;

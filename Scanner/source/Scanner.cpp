@@ -1,13 +1,12 @@
 #include "../include/Scanner.hpp"
 #include "../../RuleEngine/include/RuleEngine.hpp"
 #include "../include/YARA_Wrapper.hpp"
-#include "../../HELPERS/include/support.hpp"
 #include "../../HELPERS/include/ThreadPool.hpp"
 #include <exception>
 #include <future>
 #include <iostream>
 
-#include "FileManager.hpp"
+#include "CLI/Validators.hpp"
 
 namespace {
     auto fetch_all_rules() -> PATHS_CONTAINER {
@@ -37,8 +36,6 @@ namespace {
         SCAN_RESULTS aggregated_file_results;
         std::mutex aggregated_results_mutex;
 
-        std::unique_ptr<ThreadPool> internal_rule_pool = std::make_unique<ThreadPool>(threads_for_rules_processing);
-
         auto yara_scan_task_lambda = [&](const PATH& individual_rule_file) -> void {
             SCAN_RESULTS task_scan_results;
             try {
@@ -57,60 +54,39 @@ namespace {
         return aggregated_file_results;
     }
 
-    auto scanMultipleFilesHELPER_ThreadSafe(const PATHS_CONTAINER& filesPack, SCAN_RESULTS_PACK& sharedResults, std::mutex &resultsMutex, int threads_for_rules_processing_per_file,
-        const PATHS_CONTAINER& rules) -> void {
-
-        std::unique_ptr<ThreadPool> innerThreadPool = std::make_unique<ThreadPool>(threads_for_rules_processing_per_file);
-
-        std::ranges::for_each(filesPack, [&](const PATH &filePath) -> void {
-            SCAN_RESULTS fileScanningResults;
-            try {
-                fileScanningResults = scanSingleFile(filePath, threads_for_rules_processing_per_file, rules);
-            } catch (const std::exception& e) {
-                std::cerr << "Unhandled exception while scanning file " << filePath.string() << ": " << e.what() << std::endl;
-                return;
-            }
-
-            if (!fileScanningResults.empty()) {
-                std::lock_guard<std::mutex> lock(resultsMutex);
-                sharedResults[filePath.string()] = std::move(fileScanningResults);
-            }
-        });
-    }
-} // namespace
+}
 
 namespace scanner {
     auto scanMultipleFiles(const PATHS_CONTAINER &files, int numberOfThreads) -> SCAN_RESULTS_PACK {
-        auto fetchedRules = fetch_all_rules();
+        const auto fetchedRules = fetch_all_rules();
 
         const auto threadsToUse = std::max(1, numberOfThreads);
-        ThreadPool pool(threadsToUse);
+        const auto pool = std::make_unique<ThreadPool>(threadsToUse);
         SCAN_RESULTS_PACK results;
         std::mutex resultsMutex;
 
-        auto vectors = support::container_utils::split(files, threadsToUse);
+        std::unordered_map<std::string, std::future<SCAN_RESULTS>> taskFutures;
 
-        std::vector<std::future<void>> taskFutures;
-        taskFutures.reserve(vectors.size());
-
-        std::ranges::for_each(vectors, [&](const auto &filesPack) -> void {
-            if (!filesPack.empty()) {
-                taskFutures.emplace_back(pool.addTask(scanMultipleFilesHELPER_ThreadSafe,
-                    filesPack,
-                    std::ref(results),
-                    std::ref(resultsMutex)
-                    ));
-            }
+        std::ranges::for_each(files, [&](const PATH &filePath) -> void {
+            taskFutures.insert({std::move(filePath.string()), pool->addTask(scanSingleFile, filePath, threadsToUse, fetchedRules)});
         });
 
-        std::ranges::for_each(taskFutures, [](auto& currentFuture) -> void {
+        for (auto& [fst, snd] : taskFutures) {
             try {
-                currentFuture.get();
-            } catch (std::exception& _) {
-                // Logging error logic
-                throw;
+                auto scanResults = std::move(snd.get());
+
+                if (!scanResults.empty()) {
+                    std::lock_guard<std::mutex> lock(resultsMutex);
+                    results.insert({fst, std::move(scanResults)});
+                }
+
+            } catch (const std::future_error& fe) {
+                std::cerr << "Future error collecting scan result for file '" << fst << "': " << fe.what() << " (code: " << fe.code() << ")" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Exception collecting scan result for file '" << fst << "': " << e.what() << std::endl;
             }
-        });
+        }
+
 
         return results;
     }
