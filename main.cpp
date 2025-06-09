@@ -6,12 +6,14 @@
 #include "Scanner/include/Scanner.hpp"
 #include "Logger/include/Logger.hpp"
 #include "HELPERS/include/Types.hpp"
+#include "HELPERS/include/CronManager.hpp"
 #include <CLI/CLI.hpp>
 #include <algorithm>
 #include <exception>
 #include <filesystem>
 #include <utility>
 #include <chrono>
+
 
 namespace {
     const auto OUTPUT_FILE = config_manager::get_output_file_path();
@@ -217,7 +219,7 @@ namespace {
 int main(int argc, char *argv[]) {
     auto& logger = logger::Logger::getInstance();
 
-    logger.enableDebugMode(false);
+    logger.enableDebugMode(true);
 
     logger.logAntivirusStart();
 
@@ -254,6 +256,10 @@ int main(int argc, char *argv[]) {
     std::string update_MetaIndexARG;
     auto OPT_UPDATE = app.add_option("--update_index", update_MetaIndexARG, "Updating metaindex with fresh data");
     OPT_UPDATE->expected(1);
+
+    int schedule_days = 0;
+    auto OPT_SCHEDULE = app.add_option("--schedule", schedule_days, "Set a Linux cron job to perform quick system scan every N days");
+    OPT_SCHEDULE->expected(1);
 
     bool show_flag = false;
     app.add_flag("--show", show_flag, "Show detected viruses");
@@ -295,6 +301,7 @@ int main(int argc, char *argv[]) {
                 logger.logIndexError("CREATE", e.what());
                 throw;
             }
+            logger.logAntivirusShutdown();
             return 0;
         }
 
@@ -320,6 +327,7 @@ int main(int argc, char *argv[]) {
                 logger.logIndexUpdate(update_result);
                 throw;
             }
+            logger.logAntivirusShutdown();
             return 0;
         }
 
@@ -336,6 +344,7 @@ int main(int argc, char *argv[]) {
                 logger.error("Failed to set index storage location: " + std::string(e.what()));
                 throw;
             }
+            logger.logAntivirusShutdown();
             return 0;
         }
 
@@ -352,6 +361,7 @@ int main(int argc, char *argv[]) {
                 logger.error("Failed to set output file path: " + std::string(e.what()));
                 throw;
             }
+            logger.logAntivirusShutdown();
             return 0;
         }
 
@@ -368,12 +378,20 @@ int main(int argc, char *argv[]) {
                 logger.error("Failed to set thread count: " + std::string(e.what()));
                 throw;
             }
+            logger.logAntivirusShutdown();
+            return 0;
+        }
+        if (OPT_SCHEDULE->count() > 0)
+        {
+            cron_manager::setupCronJob(schedule_days);
+            logger.logAntivirusShutdown();
             return 0;
         }
 
         if (show_flag)
         {
             displayDetectedViruses(OUTPUT_FILE);
+            logger.logAntivirusShutdown();
             return 0;
         }
 

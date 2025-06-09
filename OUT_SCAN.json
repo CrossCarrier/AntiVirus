@@ -1,0 +1,10 @@
+{
+    "/home/tralaleilotralala/VIRUSES/eicar.txt": {
+        "detection status": "detected",
+        "number of detected viruses": 2,
+        "viruses": [
+            "eicar",
+            "domain"
+        ]
+    }
+}

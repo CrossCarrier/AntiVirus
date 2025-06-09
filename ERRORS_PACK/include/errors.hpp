@@ -19,6 +19,10 @@ public:
 class FilesystemOperationError final : std::exception {
 public:
     explicit FilesystemOperationError(std::string&& error_message);
+    [[nodiscard]] auto what() const noexcept -> const char * override;
+
+private:
+    std::string error_message;
 };
 
 class StreamOpeningError final : public BasicErrorBuild {
@@ -95,4 +99,14 @@ class InvalidFileIndex final : public BasicErrorBuild {
 public:
     [[nodiscard]] auto getTips() const noexcept -> std::string override;
     explicit InvalidFileIndex(const std::string& invalidFile);
+};
+class InvalidNumberOfDaysError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    explicit InvalidNumberOfDaysError(int providedDays);
+};
+class AddingTaskToCronTabError final : public BasicErrorBuild {
+public:
+    [[nodiscard]] auto getTips() const noexcept -> std::string override;
+    AddingTaskToCronTabError();
 };

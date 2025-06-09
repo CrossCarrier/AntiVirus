@@ -1,82 +1,76 @@
 #include "../include/errors.hpp"
+#include <string>
 
 BasicErrorBuild::BasicErrorBuild(std::string&& message) : error_message{message} {}
 auto BasicErrorBuild::what() const throw() -> const char * { return this->error_message.c_str(); }
 
-auto ReadingSettingsError::getTips() const noexcept -> std::string {
-    return ("Interface tips : \n"
-               "1. Check provided path of user settings file\n"
-               "2. Check structure of user settings file\n");
+StreamOpeningError::StreamOpeningError():
+BasicErrorBuild("Error opening file stream")
+{}
+auto StreamOpeningError::getTips() const noexcept -> std::string {
+    return "Why it fails? Most probably wrong file`s path :P";
 }
-auto OverwritingOtherFileError::getTips() const noexcept -> std::string {
-     return("Interface tips : \n"
-               "1. Choose other name for file`s path your are trying to create\n");
-}
-auto MetaIndexDoNotExists::getTips() const noexcept -> std::string {
-    return("Interface tips : \n"
-              "1. Create new meta index for provided directory\n"
-              "2. Check if provided directory`s path is correct\n");
-}
+
+PathNotFound::PathNotFound(std::string&& filePath):
+BasicErrorBuild("File path not found" + filePath) {}
 auto PathNotFound::getTips() const noexcept -> std::string {
     return ("Interface tips : \n"
                "1. Check if file with such file exists`s on your system\n"
                "2. Do not include this path in your scanning\n");
 }
-auto StreamOpeningError::getTips() const noexcept -> std::string {
-    /* No interface tips for this error*/
-    return "";
-}
-
-
-StreamOpeningError::StreamOpeningError():
-BasicErrorBuild("Error opening file stream") {}
-
-PathNotFound::PathNotFound(std::string&& filePath):
-BasicErrorBuild("File path not found" + filePath) {}
 
 ReadingSettingsError::ReadingSettingsError(std::string&& problemDescriptor):
-BasicErrorBuild("Error reading user settings" + std::string(problemDescriptor)) {
+BasicErrorBuild("Error reading user settings" + std::string(problemDescriptor))
+{}
+auto ReadingSettingsError::getTips() const noexcept -> std::string {
+    return ("Interface tips : \n"
+               "1. Check provided path of user settings file\n"
+               "2. Check structure of user settings file\n");
 }
 
 OverwritingOtherFileError::OverwritingOtherFileError():
 BasicErrorBuild("Possibility of overwriting already existing file") {}
+auto OverwritingOtherFileError::getTips() const noexcept -> std::string {
+     return("Interface tips : \n"
+               "1. Choose other name for file`s path your are trying to create\n");
+}
 
 MetaIndexDoNotExists::MetaIndexDoNotExists():
 BasicErrorBuild("Read MetaIndex does not exists") {}
+auto MetaIndexDoNotExists::getTips() const noexcept -> std::string {
+    return("Interface tips : \n"
+              "1. Create new meta index for provided directory\n"
+              "2. Check if provided directory`s path is correct\n");
+}
 
-#include <string>
-
-
-FilesystemOperationError::FilesystemOperationError(std::string&& error_message) {}
-
+FilesystemOperationError::FilesystemOperationError(std::string&& _error_message):
+error_message{_error_message}
+{}
+auto FilesystemOperationError::what() const throw() -> const char * { return this->error_message.c_str(); }
 
 DirectoryValidationError::DirectoryValidationError(const std::string& dirPath)
-    : BasicErrorBuild("Directory validation error.") {
-    // Store dirPath as a member if needed for getTips()
+    : BasicErrorBuild("Directory validation error : " + dirPath) {
 }
 auto DirectoryValidationError::getTips() const noexcept -> std::string {
-    return "";
+    return "Probably what ? You provided random file`s path or your directory does not exist for real";
 }
 
 FileValidationError::FileValidationError(std::string&& filePath)
     : BasicErrorBuild("File validation error.") {
-    // Store filePath as a member if needed for getTips()
 }
 auto FileValidationError::getTips() const noexcept -> std::string {
-    return "";
+    return "As you can think your file is probably irregular or just does not exist";
 }
 
 ConfigFileStructureError::ConfigFileStructureError(std::string&& fieldOption)
     : BasicErrorBuild("Config file structure error : " + std::string(fieldOption)) {
-    // Store fieldOption as a member if needed for getTips()
 }
 auto ConfigFileStructureError::getTips() const noexcept -> std::string {
-    return "";
+    return "Check for structure of your config file whether all fields are correctly named and have correct values";
 }
 
 MovingIndexStorageError::MovingIndexStorageError(const std::string& providedAction)
     : BasicErrorBuild("Error related to moving index storage.") {
-    // Store providedAction as a member if needed for getTips()
 }
 auto MovingIndexStorageError::getTips() const noexcept -> std::string {
     return "";
@@ -124,4 +118,21 @@ BasicErrorBuild("Error reading data about file from index")
 auto InvalidFileIndex::getTips() const noexcept -> std::string {
     return "";
 }
+
+InvalidNumberOfDaysError::InvalidNumberOfDaysError(int providedDays):
+BasicErrorBuild("Provided invalid number of days : " + std::to_string(providedDays))
+{}
+auto InvalidNumberOfDaysError::getTips() const noexcept -> std::string {
+    return "JUST PROVIDED POSITIVE NUMBER OF DAYS DUMBAS.. :P";
+}
+
+AddingTaskToCronTabError::AddingTaskToCronTabError():
+BasicErrorBuild("Error creating new task for Linux crontab")
+{}
+auto AddingTaskToCronTabError::getTips() const noexcept -> std::string {
+    return "Just check for permissions";
+}
+
+
+
 

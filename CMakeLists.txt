@@ -85,6 +85,8 @@ add_executable(AntiVirus
         HELPERS/include/ThreadPool.hpp
         Logger/include/Logger.hpp
         Logger/source/Logger.cpp
+        HELPERS/include/CronManager.hpp
+        HELPERS/source/CronManager.cpp
 )
 
 # Set working directory for the target
