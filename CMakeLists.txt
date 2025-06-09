@@ -38,6 +38,13 @@ FetchContent_Declare(
     )
 FetchContent_MakeAvailable(cli11)
 
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.12.0  # Use the latest stable version
+)
+FetchContent_MakeAvailable(spdlog)
+
 # Zewnętrzne źródła (np. pliki źródłowe projektu)
 add_executable(AntiVirus
 #    DirectoryManager/include/Directory.hpp
@@ -76,6 +83,8 @@ add_executable(AntiVirus
         HELPERS/include/Constants.hpp
         HELPERS/source/Contants.cpp
         HELPERS/include/ThreadPool.hpp
+        Logger/include/Logger.hpp
+        Logger/source/Logger.cpp
 )
 
 # Set working directory for the target
@@ -103,4 +112,5 @@ target_link_libraries(AntiVirus PRIVATE
     ${Boost_LIBRARIES}
     ${YARA_LIBRARIES}
     pthread
+        spdlog::spdlog
 )

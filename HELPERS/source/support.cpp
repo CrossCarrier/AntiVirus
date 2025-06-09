@@ -3,10 +3,11 @@
 #include "../../ERRORS_PACK/include/errors.hpp"
 #include "../../HELPERS/include/Types.hpp"
 #include <fstream>
-#include <iostream>
 #include <unordered_set>
 
 namespace {
+    using namespace types::filesystem_types;
+
     auto is_file_accessible(const PATH &file_path) -> bool {
         std::error_code ec;
 

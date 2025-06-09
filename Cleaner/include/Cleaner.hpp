@@ -2,6 +2,7 @@
 
 #include "../../HELPERS/include/support.hpp"
 
-namespace cleaner {
+namespace cleaner
+{
     auto removeInfected(const std::string& output_json_path) -> void;
 }

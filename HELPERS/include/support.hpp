@@ -1,13 +1,11 @@
 #pragma once
 
-#include <unordered_set>
-
 #include "Types.hpp"
 
-using namespace types::filesystem_types;
-using namespace types::json;
-
 namespace support {
+    using namespace types::filesystem_types;
+    using namespace types::json;
+
     namespace filesystem_utils {
 
         auto load_from_directory(const PATH &path) -> PATHS_CONTAINER;

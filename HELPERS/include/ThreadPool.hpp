@@ -16,7 +16,7 @@ class ThreadPool {
     typedef std::queue<std::function<void()>>   task_queue_t;
 
 public:
-    explicit ThreadPool(size_t numberOfThreads):
+    explicit ThreadPool(const size_t numberOfThreads):
     threads{threads_t(numberOfThreads)},
     shutdownRequest{false}
     {
