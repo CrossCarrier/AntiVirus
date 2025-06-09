@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
-set(CMAKE_CXX_COMPILER "/opt/homebrew/bin/g++-14")
-set(CMAKE_C_COMPILER "/opt/homebrew/bin/gcc-14")
+# set(CMAKE_CXX_COMPILER "/opt/homebrew/bin/g++-14")
+# set(CMAKE_C_COMPILER "/opt/homebrew/bin/gcc-14")
 set(CMAKE_CXX_STANDARD 23)
 project(AntiVirus)
 
@@ -60,15 +60,22 @@ add_executable(AntiVirus
         HELPERS/include/support.hpp
         HELPERS/source/support.cpp
         HELPERS/include/json.hpp
+        FileManager/include/FileManager.hpp
+        FileManager/source/FileManager.cpp
         FileManager/include/HASH-SHA256.hpp
         FileManager/source/HASH-SHA256.cpp
-        FileManager/include/File.hpp
-        FileManager/source/File.cpp
         FileManager/include/IndexManager.hpp
         FileManager/source/IndexManager.cpp
         ERRORS_PACK/include/errors.hpp
         ERRORS_PACK/source/errors.cpp
-        
+        HELPERS/include/Types.hpp
+        ConfigManager/include/ConfigManager.hpp
+        ConfigManager/source/ConfigManager.cpp
+        Cleaner/include/Cleaner.hpp
+        Cleaner/source/Cleaner.cpp
+        HELPERS/include/Constants.hpp
+        HELPERS/source/Contants.cpp
+        HELPERS/include/ThreadPool.hpp
 )
 
 # Set working directory for the target

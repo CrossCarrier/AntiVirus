@@ -12,7 +12,6 @@
 #include <chrono>
 
 namespace {
-    const auto INDEX_STORAGE = config_manager::get_index_storage_path();
     const auto OUTPUT_FILE = config_manager::get_output_file_path();
     const auto NUMBER_OF_THREADS = config_manager::get_number_of_threads();
 } // namespace
@@ -193,11 +192,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        auto start = std::chrono::system_clock::now();
         processFiles(filesToBeScanned, OUTPUT_FILE, NUMBER_OF_THREADS);
-        auto end = std::chrono::system_clock::now();
-
-        std::cout << "Duration : " << std::chrono::duration_cast<std::chrono::seconds>(end - start) << std::endl;
     }
     catch (const BasicErrorBuild& ERROR) {
         std::cerr << ERROR.getTips() << std::endl;

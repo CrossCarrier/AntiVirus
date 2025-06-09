@@ -9,6 +9,7 @@ namespace index_manager {
 
     auto createMetaIndex(const std::string& inputPath, const std::string& nameOutputPath) -> void;
     auto updateMetaIndex(const std::string& inputPath) -> void;
+    auto updateAfterRemoval(const PATH& filePath) -> void;
 
     auto filterModified(PATHS_CONTAINER& files) -> PATHS_CONTAINER;
 

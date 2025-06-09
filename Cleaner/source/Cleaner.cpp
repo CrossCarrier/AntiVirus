@@ -2,6 +2,7 @@
 #include <string>
 #include <filesystem>
 #include "../../FileManager/include/FileManager.hpp"
+#include "../../FileManager/include/IndexManager.hpp"
 
 namespace cleaner {
     auto removeInfected(const std::string& output_json_path) -> void {
@@ -13,10 +14,11 @@ namespace cleaner {
         }
 
         for (auto& [filePath, detectionInfo] : infected.items()) {
-            if (!detectionInfo.contains("detection status") || detectionInfo["detection status"] != "detected") {
+            if (!detectionInfo.contains("detection status") || detectionInfo["detection status"].get<std::string>() != "detected") {
                 continue;
             }
             try {
+                index_manager::updateAfterRemoval(filePath);
                 std::filesystem::remove(filePath);
             } catch (const std::exception &_) {
                 throw;

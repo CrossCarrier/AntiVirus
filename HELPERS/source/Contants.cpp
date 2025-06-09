@@ -2,6 +2,7 @@
 
 #include <unordered_set>
 #include <string>
+#include <filesystem>
 
 namespace constants {
 
@@ -55,7 +56,7 @@ namespace constants {
     {
         "/proc", "/sys", "/dev", "/run",
         "/media", "/mnt",
-        "/snap", "/antivirus",
+        "/snap", std::filesystem::current_path().string()
     };
 
 }
