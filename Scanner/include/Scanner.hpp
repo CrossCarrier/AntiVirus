@@ -2,12 +2,10 @@
 
 #include "../../HELPERS/include/Types.hpp"
 
-#include <algorithm>
-
-using namespace types::filesystem_types;
-using namespace types::scanning_types;
-
 namespace scanner {
+
+    using namespace types::scanning_types;
+    using namespace types::filesystem_types;
 
     auto scanMultipleFiles(const PATHS_CONTAINER &files, int numberOfThreads) -> SCAN_RESULTS_PACK;
 

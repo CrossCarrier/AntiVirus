@@ -1,5 +1,5 @@
 {
     "Indexes storage path": "/Users/pawelkozikowski/Desktop/NEW_AV_Indexes",
-    "Number of threads": 10,
+    "Number of threads": 60,
     "Output file path": "/Users/pawelkozikowski/Desktop/OUT_SCAN.json"
 }

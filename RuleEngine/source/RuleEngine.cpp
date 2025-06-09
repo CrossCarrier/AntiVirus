@@ -4,7 +4,7 @@
 namespace rule_engine {
 
     namespace config_files {
-        constexpr const char *YARA_RULES_CONFIG = "../antivirus/AppData/YARA_config.json";
+        constexpr auto YARA_RULES_CONFIG = "../antivirus/AppData/YARA_config.json";
     }
 
     auto get_Rules() -> RULES_PACK {
@@ -16,6 +16,7 @@ namespace rule_engine {
             std::ranges::for_each(data, [&](const std::string &val) -> void { result.emplace_back((val)); });
 
         } catch (std::exception& _) {
+            // Logging error logic
             throw;
         }
 

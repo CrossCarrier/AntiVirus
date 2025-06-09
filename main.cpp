@@ -16,8 +16,9 @@ namespace {
     const auto NUMBER_OF_THREADS = config_manager::get_number_of_threads();
 } // namespace
 namespace {
-
+    using namespace types::scanning_types;
     auto save_results_file(nlohmann::json &data, const std::string &path_name, SCAN_RESULTS &results) -> void {
+
         std::string is_detected = "detected";
         if (results.empty()) {
             is_detected = "undetected";
@@ -32,6 +33,7 @@ namespace {
     }
 
     auto processFiles(const PATHS_CONTAINER &files, const std::string &outputFile, int threadsNum) -> void {
+        using namespace types::scanning_types;
         JSON scanResultsJson;
 
         auto results = scanner::scanMultipleFiles(files, threadsNum);
@@ -165,7 +167,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (!directory_path.empty()) {
-            auto directoryPath = std::filesystem::path(directory_path);
+            const auto directoryPath = std::filesystem::path(directory_path);
             auto directoryFiles = support::filesystem_utils::load_from_directory(directoryPath);
 
             std::ranges::for_each(

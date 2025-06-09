@@ -56,8 +56,6 @@ public:
         });
     }
 
-
-
 private:
     class ThreadWorker {
     public:

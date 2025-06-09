@@ -21,6 +21,7 @@ namespace cleaner {
                 index_manager::updateAfterRemoval(filePath);
                 std::filesystem::remove(filePath);
             } catch (const std::exception &_) {
+                // Logging error logic
                 throw;
             }
         }

@@ -1,11 +1,9 @@
 #include "../include/FileManager.hpp"
 #include "../include/HASH-SHA256.hpp"
-#include <algorithm>
+#include "../../ERRORS_PACK/include/errors.hpp"
 #include <chrono>
 #include <exception>
 #include <iostream>
-#include <memory>
-#include <stdexcept>
 
 namespace filemanager {
 
@@ -34,95 +32,48 @@ namespace filemanager {
 
     namespace file {
 
-        time_t lastModificationTime(const std::filesystem::path &_path) {
+        auto lastModificationTime(const std::filesystem::path &_path) -> time_t {
             if (!validate::validate_file(_path)) {
                 std::cout << "PROBLEM with file " << _path.string() << std::endl;
-                throw std::invalid_argument("Cannot load data from your file!");
+                throw FileValidationError(_path);
             }
 
-            auto file_modification_time = std::filesystem::last_write_time(_path);
+            const auto file_modification_time = std::filesystem::last_write_time(_path);
             const auto system_time = std::chrono::file_clock::to_sys(file_modification_time);
-            auto converted_system_time = std::chrono::time_point_cast<std::chrono::system_clock::duration>(system_time);
+            const auto converted_system_time = std::chrono::time_point_cast<std::chrono::system_clock::duration>(system_time);
 
             return std::chrono::system_clock::to_time_t(converted_system_time);
         }
 
-        ssize_t size(const std::filesystem::path &_path) {
+        auto size(const std::filesystem::path &_path) -> uintmax_t {
             if (!validate::validate_file(_path)) {
                 std::cout << "PROBLEM with file " << _path.string() << std::endl;
-                throw std::invalid_argument("Cannot load data from your file!");
+                throw FileValidationError(_path);
             }
 
             return std::filesystem::file_size(_path);
         }
 
-        std::string hash(const std::filesystem::path &_path) {
+        auto hash(const std::filesystem::path &_path) -> std::string {
             if (!validate::validate_file(_path)) {
                 std::cout << "PROBLEM with file " << _path.string() << std::endl;
-                throw std::invalid_argument("Cannot load data from you file!");
+                throw FileValidationError(_path);
             }
 
             std::string file_hash;
             try {
                 file_hash = hash_SHA256::hash_file(_path);
             } catch (std::exception &_) {
+                // Logging error logic
                 throw;
             }
 
             return file_hash;
         }
 
-        bool isMod(const std::filesystem::path &_path, const time_t _prev_mod, const ssize_t _prev_size,
-                   const std::string &_prev_hash) {
+        auto isMod(const std::filesystem::path &_path, const time_t _prev_mod, const ssize_t _prev_size,
+                   const std::string &_prev_hash) -> bool {
             return (_prev_mod != lastModificationTime(_path) && _prev_size != size(_path) && _prev_hash != hash(_path));
         }
     } // namespace file
-
-    namespace directory {
-
-        CTF::PATHS_CONTAINER loadFiles(const std::filesystem::path &path) {
-            if (!validate::validate_directory(path)) {
-                throw std::invalid_argument("Invalid Directory!");
-            }
-
-            CTF::PATHS_CONTAINER fetched_files;
-            CTF::DIRECTORY_ITER_R dir_iter(path, CTF::ITER_OPTIONS::skip_permission_denied);
-
-            std::ranges::for_each(dir_iter, [&](const auto &entry) -> void {
-                if (validate::validate_file(entry)) {
-                    fetched_files.push_back(entry);
-                }
-            });
-            return fetched_files;
-        }
-
-        CTF::PATHS_CONTAINER loadModifiedFiles(const std::filesystem::path &_path, nlohmann::json _indexData) {
-            if (!validate::validate_directory(_path))
-                throw std::invalid_argument("Invalid Directory");
-            CTF::PATHS_CONTAINER fetched_files;
-            try {
-                fetched_files = loadFiles(_path);
-            } catch (std::exception &ERROR) {
-                throw ERROR;
-            }
-
-            try {
-                std::ranges::for_each(fetched_files, [&](const std::filesystem::path &_file) -> void {
-                    std::unique_ptr<time_t> PreModeData = std::make_unique<time_t>(_indexData["Modification Time"]);
-                    std::unique_ptr<ssize_t> PreSize = std::make_unique<ssize_t>(_indexData["Size"]);
-                    std::unique_ptr<std::string> PreHash = std::make_unique<std::string>(_indexData["Hash"]);
-
-                    if (!file::isMod(_file, *PreModeData, *PreSize, *PreHash)) {
-                        fetched_files.erase(std::ranges::find(fetched_files, _file));
-                    } else {
-                        return;
-                    }
-                });
-            } catch (std::exception &_) {
-                throw;
-            }
-
-            return fetched_files;
-        }
-    } // namespace directory
 } // namespace filemanager

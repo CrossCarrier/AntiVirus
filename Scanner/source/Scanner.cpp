@@ -9,6 +9,10 @@
 #include "CLI/Validators.hpp"
 
 namespace {
+    using namespace types::scanning_types;
+    using namespace types::filesystem_types;
+
+
     auto fetch_all_rules() -> PATHS_CONTAINER {
         PATHS_CONTAINER loaded_rules;
 

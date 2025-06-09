@@ -71,7 +71,25 @@ namespace {
         });
 
         if (!already_exists_in_database) {
-            if (LegendData.contains("SYSTEM") && LegendData["SYSTEM"].is_string()) {
+            if (filePath.has_parent_path()) {
+                const auto ParentPathOfNewFile = filePath.parent_path();
+                if (LegendData.contains(ParentPathOfNewFile.string()) && LegendData[ParentPathOfNewFile.string()].is_string()) {
+                    try {
+                        auto ParentDirectoryIndex = std::filesystem::path(LegendData[ParentPathOfNewFile.string()].get<std::string>());
+                        JSON PARENT_DIRECTORY = std::move(support::json_utils::read_data(ParentDirectoryIndex));
+                        PARENT_DIRECTORY[filePath.string()] = {
+                            {"Hash",std::move(filemanager::file::hash(filePath))},
+                            {"Modification time", filemanager::file::lastModificationTime(filePath)},
+                            {"Size", filemanager::file::size(filePath)}
+                        };
+                        support::json_utils::write_data(ParentDirectoryIndex, PARENT_DIRECTORY);
+                    } catch (std::exception& ERROR) {
+                        // Logging error logic
+                        throw;
+                    }
+                }
+            }
+            else if (LegendData.contains("SYSTEM") && LegendData["SYSTEM"].is_string()) {
                 const auto SYS_IDX_PATH = std::filesystem::path(LegendData["SYSTEM"].get<std::string>());
                 try {
                     JSON SYSTEM_INDEXES = std::move(support::json_utils::read_data(SYS_IDX_PATH));

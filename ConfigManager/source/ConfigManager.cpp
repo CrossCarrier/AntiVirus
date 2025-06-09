@@ -13,6 +13,10 @@ namespace config_manager {
     namespace CTF = types::filesystem_types;
     namespace FS = std::filesystem;
 
+    namespace {
+        constexpr auto USER_SETTINGS_PATH = "../antivirus/AppData/user_settings.json";
+    }
+
     auto fetch_config_files(const CTF::PATH &config_file_path) -> PATHS_CONTAINER {
         CONFIG_FILES fetched_files;
         auto config_data = support::json_utils::read_data(config_file_path);
@@ -20,7 +24,7 @@ namespace config_manager {
         if (config_data.contains("Directories") && config_data["Directories"].is_array()) {
             std::ranges::for_each(config_data["Directories"],
                 [&fetched_files](const std::string &directory_path) -> void {
-                    auto DirPathABS = FS::absolute(directory_path);
+                    const auto DirPathABS = FS::absolute(directory_path);
 
                     if (!filemanager::validate::validate_directory(DirPathABS)) {
                         throw DirectoryValidationError("Invalid directory in config: " + DirPathABS.string());
@@ -121,7 +125,6 @@ namespace config_manager {
             }
         }
 
-        // Updating paths for each indexed directory in Legend.json HelperFile
         try {
             FS::path legend_file_path = new_location / "Legend.json";
 
@@ -144,7 +147,6 @@ namespace config_manager {
                 }
 
                 if (legend_was_modified) {
-                    // Update legend file if any index storage reference was modified
                     support::json_utils::write_data(legend_file_path.string(), legend_json_data);
                 }
             } else {
@@ -195,7 +197,6 @@ namespace config_manager {
         output_stream_test.close();
 
         constexpr auto JSON_KEY_OUTPUT_FILE = "Output file path";
-        constexpr auto USER_SETTINGS_PATH = "../antivirus/AppData/user_settings.json";
 
         nlohmann::json userSettings;
         try {
@@ -222,7 +223,6 @@ namespace config_manager {
         }
 
         constexpr auto JSON_KEY_THREADS_NUMBER = "Number of threads";
-        constexpr auto USER_SETTINGS_PATH = "../antivirus/AppData/user_settings.json";
 
         JSON userSettings;
         try {
@@ -262,7 +262,6 @@ namespace config_manager {
     auto get_number_of_threads() -> int {
         try {
             constexpr auto JSON_KEY_THREADS_NUMBER = "Number of threads";
-            constexpr auto USER_SETTINGS_PATH = "../antivirus/AppData/user_settings.json";
 
             return fetchUserSetting(JSON_KEY_THREADS_NUMBER, USER_SETTINGS_PATH);
         } catch (const std::exception& ERROR) {
@@ -272,7 +271,6 @@ namespace config_manager {
     auto get_index_storage_path() -> std::string {
         try {
             constexpr auto JSON_KEY_INDEXES = "Indexes storage path";
-            constexpr auto USER_SETTINGS_PATH = "../antivirus/AppData/user_settings.json";
 
             return fetchUserSetting(JSON_KEY_INDEXES, USER_SETTINGS_PATH);
         } catch (const std::exception& ERROR) {
@@ -282,7 +280,6 @@ namespace config_manager {
     auto get_output_file_path() -> std::string {
         try {
             constexpr auto JSON_KEY_OUTPUT_FILE = "Output file path";
-            constexpr auto USER_SETTINGS_PATH = "../antivirus/AppData/user_settings.json";
 
             return fetchUserSetting(JSON_KEY_OUTPUT_FILE, USER_SETTINGS_PATH);
         } catch (const std::exception& ERROR) {
