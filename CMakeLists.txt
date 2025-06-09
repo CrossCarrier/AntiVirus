@@ -7,7 +7,7 @@ project(AntiVirus)
 # Flagi
 # add_compile_options(-Wall -Werror -Wpedantic)
 
-# OpenSSL       
+# OpenSSL
 find_package(OpenSSL REQUIRED)
 
 # YARA library
@@ -37,13 +37,6 @@ FetchContent_Declare(
         GIT_TAG v2.3.2
     )
 FetchContent_MakeAvailable(cli11)
-
-FetchContent_Declare(
-    spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    GIT_TAG v1.12.0  # Use the latest stable version
-)
-FetchContent_MakeAvailable(spdlog)
 
 # Zewnętrzne źródła (np. pliki źródłowe projektu)
 add_executable(AntiVirus
@@ -83,10 +76,6 @@ add_executable(AntiVirus
         HELPERS/include/Constants.hpp
         HELPERS/source/Contants.cpp
         HELPERS/include/ThreadPool.hpp
-        Logger/include/Logger.hpp
-        Logger/source/Logger.cpp
-        HELPERS/include/CronManager.hpp
-        HELPERS/source/CronManager.cpp
 )
 
 # Set working directory for the target
@@ -95,7 +84,7 @@ set_target_properties(AntiVirus PROPERTIES
 )
 
 # Linkowanie
-target_include_directories(AntiVirus PRIVATE 
+target_include_directories(AntiVirus PRIVATE
     ${YARA_INCLUDE_DIRS}
     Scanner/include
     FileManager/include
@@ -107,12 +96,21 @@ target_include_directories(AntiVirus PRIVATE
 # Add YARA compiler definitions
 target_compile_definitions(AntiVirus PRIVATE HAVE_YARA=1)
 
-target_link_libraries(AntiVirus PRIVATE 
+target_link_libraries(AntiVirus PRIVATE
     CLI11::CLI11
-    OpenSSL::SSL 
+    OpenSSL::SSL
     OpenSSL::Crypto
     ${Boost_LIBRARIES}
     ${YARA_LIBRARIES}
     pthread
-        spdlog::spdlog
 )
+
+enable_testing()
+
+add_executable(AntiVirusTests
+    tests/test_errors.cpp
+    tests/test_filemanager.cpp
+    tests/test_scanner.cpp
+)
+target_link_libraries(AntiVirusTests PRIVATE AntiVirus Catch2::Catch2WithMain)
+
